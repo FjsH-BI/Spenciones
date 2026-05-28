@@ -1,877 +1,1157 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Guía BDA – Base de Datos de Afiliados v23</title>
   <style>
-    :root {
-      --bg:#0f172a; --panel:#1e293b; --panel2:#111827; --line:#334155;
-      --text:#e2e8f0; --muted:#94a3b8; --dim:#64748b; --blue:#3b82f6;
-      --green:#10b981; --red:#ef4444; --yellow:#fbbf24; --purple:#a855f7;
-      --teal:#14b8a6; --pink:#ec4899;
+    :root{
+      --bg:#0f172a;--panel:#1e293b;--line:#334155;
+      --text:#e2e8f0;--muted:#94a3b8;--dim:#64748b;
+      --blue:#3b82f6;--green:#10b981;--red:#ef4444;--yellow:#fbbf24;
+      --purple:#a855f7;--teal:#14b8a6;--pink:#ec4899;--orange:#fb923c;
     }
-    * { box-sizing:border-box; }
-    body {
-      margin:0; font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: radial-gradient(circle at top left, #172554 0, #0f172a 32%, #020617 100%);
-      color:var(--text); min-height:100vh;
+    *{box-sizing:border-box;}
+    body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+      background:radial-gradient(circle at top left,#172554 0,#0f172a 32%,#020617 100%);
+      color:var(--text);min-height:100vh;}
+    header{position:sticky;top:0;z-index:10;
+      background:linear-gradient(135deg,rgba(30,41,59,.98),rgba(15,23,42,.98));
+      border-bottom:1px solid var(--line);backdrop-filter:blur(10px);}
+    .wrap{max-width:1180px;margin:0 auto;padding:18px 18px 14px;}
+    .brand{display:flex;align-items:center;gap:12px;}
+    .icon{background:var(--blue);border-radius:12px;padding:8px 11px;font-size:22px;
+      box-shadow:0 10px 25px rgba(59,130,246,.25);}
+    h1{margin:0;font-size:clamp(18px,3vw,28px);line-height:1.1;color:#f8fafc;}
+    .sub{margin:4px 0 0;font-size:12px;color:var(--muted);}
+    .tabs{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px;}
+    .tab{border:1px solid var(--line);background:#0f172a;color:var(--muted);
+      padding:8px 13px;border-radius:999px;font-weight:700;font-size:12.5px;cursor:pointer;transition:.15s;}
+    .tab:hover{border-color:#60a5fa;color:#93c5fd;}
+    .tab.active{background:var(--blue);color:white;border-color:var(--blue);}
+    main{max-width:1180px;margin:0 auto;padding:22px 18px 52px;}
+    .card{background:rgba(30,41,59,.88);border:1px solid var(--line);border-radius:18px;
+      padding:20px;margin-bottom:18px;box-shadow:0 16px 35px rgba(0,0,0,.20);}
+    h2{margin:0 0 10px;font-size:17px;color:#93c5fd;}
+    h3{margin:0 0 10px;font-size:15px;color:#f8fafc;}
+    p{line-height:1.58;}
+    /* ── stats grid ── */
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-top:14px;}
+    .stat{background:#0f172a;border:1px solid var(--line);border-radius:12px;padding:12px;}
+    .lbl{color:var(--dim);font-size:10px;margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em;}
+    .val{color:#f1f5f9;font-weight:700;font-size:13.5px;}
+    /* ── legend ── */
+    .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+    .leg-item{display:flex;align-items:center;gap:6px;background:#0f172a;border:1px solid var(--line);
+      border-radius:8px;padding:5px 10px;font-size:12px;color:var(--muted);}
+    .leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+    /* ── filters ── */
+    .filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:16px 0;}
+    input,select{background:#1e293b;border:1px solid var(--line);color:var(--text);
+      border-radius:12px;padding:9px 13px;outline:none;font-size:13px;}
+    input{flex:1 1 240px;}
+    /* ── file cards ── */
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+    .file-card{background:#1e293b;border:1px solid var(--line);border-radius:14px;
+      padding:14px;cursor:pointer;transition:.18s ease;}
+    .file-card:hover{transform:translateY(-2px);border-color:#60a5fa;}
+    .file-head{display:flex;gap:9px;align-items:flex-start;}
+    .badge{border-radius:7px;padding:4px 8px;font-size:10.5px;font-weight:900;
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;}
+    .file-title{font-weight:800;font-size:13px;color:#f8fafc;}
+    .file-meta{margin-top:4px;font-size:10.5px;color:var(--dim);
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
+    .file-desc{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.48;display:none;}
+    .file-key{margin-top:7px;font-size:11px;color:#fbbf24;
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace;display:none;}
+    .file-key b{color:var(--dim);font-family:inherit;}
+    .file-card.open .file-desc,.file-card.open .file-key{display:block;}
+    .chip{display:inline-block;margin-top:7px;border-radius:999px;
+      padding:2px 8px;font-size:10.5px;font-weight:800;}
+    /* ── notice / rule / key-box ── */
+    .notice{border-radius:14px;padding:13px 16px;background:#0f172a;
+      border:1px solid var(--line);color:var(--muted);margin-bottom:16px;font-size:13px;}
+    .rule{font-size:12.5px;background:#0f172a;color:#fbbf24;
+      border:1px solid #422006;border-radius:12px;padding:10px 13px;margin:9px 0 13px;}
+    .key-box{background:linear-gradient(135deg,#1e3a5f,#0f172a);
+      border:1px solid #1e40af;border-radius:12px;padding:10px 13px;margin:9px 0 13px;}
+    .key-label{color:#93c5fd;font-size:10px;font-weight:800;text-transform:uppercase;
+      letter-spacing:.05em;margin-bottom:4px;}
+    .key-value{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+      color:#dbeafe;font-size:12.5px;font-weight:700;}
+    /* ── tables ── */
+    .tw{overflow:auto;border:1px solid var(--line);border-radius:12px;}
+    table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:580px;}
+    th{color:var(--dim);background:#0f172a;text-align:left;
+      padding:9px 11px;border-bottom:1px solid var(--line);font-weight:700;}
+    td{padding:9px 11px;border-bottom:1px solid rgba(51,65,85,.55);vertical-align:top;}
+    tr:last-child td{border-bottom:none;}
+    td.mono{color:#38bdf8;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;}
+    td.cod{color:#fbbf24;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+      font-weight:700;white-space:nowrap;}
+    /* ── relations ── */
+    .relation{background:#1e293b;border:1px solid var(--line);border-radius:13px;
+      padding:14px;margin-bottom:9px;}
+    .relation.critical{border-color:#ef4444;}
+    /* ── flow ── */
+    .flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:11px;}
+    .phase{background:#0f172a;border-radius:13px;padding:13px;border:1px solid var(--line);}
+    /* ── error cards ── */
+    .ec{background:#1e293b;border:1px solid var(--line);border-radius:13px;
+      padding:13px;margin-bottom:8px;}
+    .er{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+    .codes{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;}
+    .cb{background:#1e293b;border:1px solid var(--line);border-radius:11px;padding:11px;}
+    .cb b{color:#fbbf24;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
+    /* ── concepts ── */
+    .concept-nav{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px;}
+    .cnav-btn{border:1px solid var(--line);background:#0f172a;color:var(--muted);
+      padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;}
+    .cnav-btn:hover{border-color:#60a5fa;color:#93c5fd;}
+    .concept-card{background:#1e293b;border:1px solid var(--line);
+      border-radius:16px;padding:18px;margin-bottom:14px;scroll-margin-top:120px;}
+    .chead{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+    .ctitle{font-size:15px;font-weight:800;color:#f8fafc;}
+    .cdesc{font-size:13px;color:#cbd5e1;line-height:1.55;margin:0 0 11px;}
+    .cdetails{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:7px;}
+    .cd{background:#0f172a;border-radius:9px;padding:9px 11px;font-size:12.5px;}
+    .cd b{color:#93c5fd;}
+    /* ── val tabs ── */
+    .vtabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:13px;}
+    .vtab{border:1px solid var(--line);background:#0f172a;color:var(--muted);
+      padding:6px 11px;border-radius:8px;font-weight:700;font-size:11.5px;
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace;cursor:pointer;transition:.15s;}
+    .vtab:hover{border-color:#60a5fa;color:#93c5fd;}
+    .vtab.active{background:var(--blue);color:white;border-color:var(--blue);}
+    .sn{font-size:11.5px;color:var(--dim);margin-top:5px;font-style:italic;}
+    @media(max-width:680px){
+      header{position:static;}
+      .er{grid-template-columns:1fr;}
+      .tab,.cnav-btn,.vtab{width:100%;border-radius:10px;}
+      .wrap,main{padding-left:12px;padding-right:12px;}
     }
-    header {
-      position: sticky; top:0; z-index:10;
-      background: linear-gradient(135deg, rgba(30,41,59,.98), rgba(15,23,42,.98));
-      border-bottom:1px solid var(--line); backdrop-filter: blur(10px);
-    }
-    .wrap { max-width:1180px; margin:0 auto; padding:22px 18px; }
-    .brand { display:flex; align-items:center; gap:12px; }
-    .icon { background:var(--blue); border-radius:12px; padding:8px 11px; font-size:22px; box-shadow:0 10px 25px rgba(59,130,246,.25); }
-    h1 { margin:0; font-size:clamp(20px, 3vw, 30px); line-height:1.1; color:#f8fafc; }
-    .sub { margin:5px 0 0; font-size:13px; color:var(--muted); }
-    .tabs { display:flex; gap:8px; flex-wrap:wrap; margin-top:18px; }
-    .tab {
-      border:1px solid var(--line); background:#0f172a; color:var(--muted); padding:9px 14px;
-      border-radius:999px; font-weight:700; font-size:13px; cursor:pointer;
-    }
-    .tab.active { background:var(--blue); color:white; border-color:var(--blue); }
-    main { max-width:1180px; margin:0 auto; padding:24px 18px 52px; }
-    .card { background:rgba(30,41,59,.88); border:1px solid var(--line); border-radius:18px; padding:20px; margin-bottom:18px; box-shadow:0 16px 35px rgba(0,0,0,.20); }
-    h2 { margin:0 0 10px; font-size:18px; color:#93c5fd; }
-    h3 { margin:0 0 10px; font-size:16px; color:#f8fafc; }
-    h4 { margin:14px 0 8px; font-size:14px; color:#cbd5e1; }
-    p { line-height:1.58; }
-    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(165px,1fr)); gap:12px; margin-top:16px; }
-    .stat { background:#0f172a; border:1px solid var(--line); border-radius:12px; padding:13px; }
-    .label { color:var(--dim); font-size:11px; margin-bottom:4px; text-transform:uppercase; letter-spacing:.04em; }
-    .value { color:#f1f5f9; font-weight:700; font-size:14px; }
-    .filters { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:18px 0; }
-    input, select {
-      background:#1e293b; border:1px solid var(--line); color:var(--text); border-radius:12px;
-      padding:10px 13px; outline:none; font-size:13px;
-    }
-    input { flex:1 1 260px; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(285px,1fr)); gap:13px; }
-    .file-card { background:#1e293b; border:1px solid var(--line); border-radius:15px; padding:15px; cursor:pointer; transition:.18s ease; }
-    .file-card:hover { transform:translateY(-2px); border-color:#60a5fa; }
-    .file-head { display:flex; gap:10px; align-items:flex-start; }
-    .badge { border-radius:8px; padding:4px 9px; font-size:11px; font-weight:900; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; white-space:nowrap; }
-    .file-title { font-weight:800; font-size:13.5px; color:#f8fafc; }
-    .file-meta { margin-top:6px; font-size:11px; color:var(--dim); font-family:ui-monospace, SFMono-Regular, Menlo, monospace; }
-    .file-desc { margin-top:9px; font-size:12.5px; color:var(--muted); line-height:1.48; display:none; }
-    .file-key { margin-top:8px; font-size:11.5px; color:#fbbf24; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; display:none; }
-    .file-key b { color:#94a3b8; font-family:inherit; }
-    .file-card.open .file-desc, .file-card.open .file-key { display:block; }
-    .chip { display:inline-block; margin-top:8px; border-radius:999px; padding:3px 9px; font-size:11px; font-weight:800; }
-    .notice { border-radius:14px; padding:14px 16px; background:#0f172a; border:1px solid var(--line); color:var(--muted); margin-bottom:18px; }
-    .rule { font-size:12.5px; background:#0f172a; color:#fbbf24; border:1px solid #422006; border-radius:12px; padding:11px 13px; margin:10px 0 14px; }
-    .key-box { background:linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); border:1px solid #1e40af; border-radius:12px; padding:11px 14px; margin:10px 0 14px; }
-    .key-box .key-label { color:#93c5fd; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px; }
-    .key-box .key-value { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; color:#dbeafe; font-size:13px; font-weight:700; }
-    .table-wrap { overflow:auto; border:1px solid var(--line); border-radius:12px; }
-    table { width:100%; border-collapse:collapse; font-size:12.5px; min-width:650px; }
-    th { color:var(--dim); background:#0f172a; text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); font-weight:700; }
-    td { padding:10px 12px; border-bottom:1px solid rgba(51,65,85,.65); vertical-align:top; }
-    tr:last-child td { border-bottom:none; }
-    td.mono { color:#38bdf8; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; white-space:nowrap; }
-    td.code { color:#fbbf24; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-weight:700; white-space:nowrap; }
-    .relation { background:#1e293b; border:1px solid var(--line); border-radius:14px; padding:15px; margin-bottom:10px; }
-    .relation.critical { border-color:#ef4444; }
-    .arrow { color:#64748b; font-size:18px; }
-    .flow { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; }
-    .phase { background:#0f172a; border-radius:14px; padding:14px; border:1px solid var(--line); }
-    .error-card { background:#1e293b; border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:9px; }
-    .error-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    .codes { display:grid; grid-template-columns:repeat(auto-fill,minmax(185px,1fr)); gap:9px; }
-    .code-box { background:#1e293b; border:1px solid var(--line); border-radius:12px; padding:12px; }
-    .code-box b { color:#fbbf24; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; }
-    .concept-card { background:#1e293b; border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:14px; }
-    .concept-head { display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
-    .concept-title { font-size:15px; font-weight:800; color:#f8fafc; }
-    .concept-desc { font-size:13px; color:#cbd5e1; line-height:1.55; margin:0 0 12px; }
-    .concept-detail { background:#0f172a; border-radius:10px; padding:10px 12px; margin-top:6px; font-size:12.5px; }
-    .concept-detail b { color:#93c5fd; }
-    .hidden { display:none; }
-    .small-note { font-size:11.5px; color:var(--dim); margin-top:6px; font-style:italic; }
-    @media (max-width:700px) {
-      header { position:static; }
-      .error-row { grid-template-columns:1fr; }
-      .tab { width:100%; text-align:left; border-radius:12px; }
-      .wrap, main { padding-left:14px; padding-right:14px; }
+
+
+    /* ── búsqueda mejorada + botón volver arriba ── */
+    .search-wrap{position:relative;flex:1 1 240px;min-width:240px;}
+    .search-wrap input{width:100%;padding-right:42px;}
+    .clear-search{position:absolute;right:8px;top:50%;transform:translateY(-50%);
+      width:26px;height:26px;border:none;border-radius:999px;background:#334155;color:#cbd5e1;
+      display:none;align-items:center;justify-content:center;font-size:18px;font-weight:800;
+      line-height:1;cursor:pointer;transition:.15s;}
+    .clear-search:hover{background:#475569;color:#ffffff;transform:translateY(-50%) scale(1.04);}
+    .clear-search.show{display:flex;}
+    .floating-top-btn{position:fixed;right:18px;bottom:22px;z-index:30;width:46px;height:46px;
+      border-radius:999px;border:1px solid #60a5fa55;background:rgba(15,23,42,.92);color:#93c5fd;
+      font-size:22px;font-weight:900;cursor:pointer;box-shadow:0 14px 35px rgba(0,0,0,.32);
+      backdrop-filter:blur(10px);opacity:0;pointer-events:none;transform:translateY(10px);
+      transition:opacity .18s ease,transform .18s ease,border-color .18s ease,color .18s ease;}
+    .floating-top-btn.show{opacity:1;pointer-events:auto;transform:translateY(0);}
+    .floating-top-btn:hover{border-color:#93c5fd;color:#dbeafe;transform:translateY(-2px);}
+    @media(max-width:680px){
+      .search-wrap{width:100%;min-width:0;}
+      .floating-top-btn{right:12px;bottom:14px;width:42px;height:42px;font-size:20px;}
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <div class="brand">
-        <div class="icon">📊</div>
-        <div>
-          <h1>Guía BDA – Base de Datos de Afiliados</h1>
-          <p class="sub">Superintendencia de Pensiones · Versión 23 · 44 archivos · Anexos I, II y III</p>
-        </div>
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <div class="icon">📊</div>
+      <div>
+        <h1>Guía BDA – Base de Datos de Afiliados</h1>
+        <p class="sub">Superintendencia de Pensiones · Versión 23 · 44 archivos · Anexos I, II y III</p>
       </div>
-      <nav id="tabs" class="tabs"></nav>
     </div>
-  </header>
+    <nav id="tabs" class="tabs"></nav>
+  </div>
+</header>
+<main id="app"></main>
+<button id="backTopBtn" class="floating-top-btn" type="button" onclick="goPageTop()" title="Volver arriba" aria-label="Volver arriba">↑</button>
 
-  <main id="app"></main>
+<script>
+const TABS=["📋 Visión General","💰 Saldos","⚠️ Deudas","🔗 Relaciones","🔍 Diagnóstico","🎓 Conceptos","✅ Validaciones"];
 
-  <script>
-const TABS = [
-  "📋 Visión General",
-  "💰 Saldos",
-  "⚠️ Deudas",
-  "🔗 Relaciones",
-  "🔍 Diagnóstico",
-  "🎓 Conceptos Avanzados",
-  "✅ Validaciones Reales"
+/* ─────────────────────────── DATA ─────────────────────────── */
+const tipoColor={
+  maestro:"#6366f1",bono:"#f59e0b",saldo:"#10b981",movimiento:"#3b82f6",
+  plan:"#8b5cf6",pension:"#ec4899",fallecido:"#6b7280",beneficiario:"#14b8a6",
+  deuda:"#ef4444",seguro:"#0ea5e9",internacional:"#a855f7",
+  identificador:"#84cc16",contacto:"#fb923c",
+};
+const tipoLabel={
+  maestro:"Archivo maestro base",bono:"Bonos de reconocimiento",
+  saldo:"Saldos de cuentas",movimiento:"Movimientos y cambios",
+  plan:"Planes y contratos",pension:"Pensiones activas",
+  fallecido:"Fallecidos y herencia",beneficiario:"Beneficiarios",
+  deuda:"Deudas previsionales",seguro:"Compañías de seguros",
+  internacional:"Convenios internacionales",identificador:"Identificadores ROL/NIC",
+  contacto:"Datos de contacto",
+};
+
+const archivos=[
+  {n:1,pre:"PERS",nom:"Personas",desc:"Archivo maestro. Contiene TODOS los afiliados con cuenta, pensionados y fallecidos. Base para validar el resto.",tipo:"maestro",key:"RUN + DV"},
+  {n:2,pre:"BONO",nom:"Bonos de Reconocimiento",desc:"Bonos emitidos o en trámite: valores, estados, visación, liquidación.",tipo:"bono",key:"RUN + DV + Tipo Bono + Tipo Formato + Emisor"},
+  {n:3,pre:"DABR",nom:"Datos adicionales Bono transado/cedido",desc:"Info adicional de bonos transados: monto, TIR, compañía, bolsa, fechas.",tipo:"bono",key:"RUN + DV + Tipo Bono + Tipo Formato + Emisor"},
+  {n:4,pre:"CTAS",nom:"Cuentas Personales",desc:"Saldos en cuotas y pesos por RUN, tipo de cuenta, fondo y subcuenta. Control patrimonial central.",tipo:"saldo",key:"RUN + DV + Tipo cuenta + Tipo subcuenta + Tipo fondo"},
+  {n:5,pre:"SCAI",nom:"Saldos por Empleador (CAI)",desc:"Subsaldos de Cuenta de Ahorro de Indemnización por empleador, fondo, fechas laborales y pactos.",tipo:"saldo",key:"RUN + DV + RUT empleador + DV emp. + Tipo fondo"},
+  {n:6,pre:"SCCV",nom:"Saldos de CCICV",desc:"Saldos de cotizaciones voluntarias por régimen tributario, fondo y bonificación estatal.",tipo:"saldo",key:"RUN + DV + Tipo fondo + Régimen tributario"},
+  {n:7,pre:"SPVC",nom:"Saldos por Empleador APVC",desc:"Saldos APVC por plan, régimen tributario, trabajador, empleador, fondo y vigencia.",tipo:"saldo",key:"RUN + DV + Código plan APVC + Régimen + Tipo fondo"},
+  {n:8,pre:"SBEP",nom:"Saldos Bonificación Estatal APVC",desc:"Saldos de bonificación estatal APVC por afiliado y fondo (Art. 20L DL 3.500).",tipo:"saldo",key:"RUN + DV + Tipo fondo"},
+  {n:9,pre:"PPVC",nom:"Planes de APVC",desc:"Planes APVC suscritos por empleadores: vigencia, fechas, glosa.",tipo:"plan",key:"Código plan APVC + RUT empleador + DV emp."},
+  {n:10,pre:"MCCI",nom:"Movimientos Cuentas Personales",desc:"Todos los cargos y abonos del mes: empleador, fechas, código movimiento, pesos, cuotas, valor cuota y saldo posterior.",tipo:"movimiento",key:"— (sin llave única; múltiples movimientos por RUN)"},
+  {n:11,pre:"CDTF",nom:"Cambios/distribuciones/traspasos futuros",desc:"Cambios de fondo, asignaciones, distribuciones de saldos y traspasos futuros.",tipo:"movimiento",key:"RUN + DV + Tipo op. + Tipo cuenta + Fecha mov. + Primer fondo origen"},
+  {n:12,pre:"AFPI",nom:"Afiliados pensionados por invalidez",desc:"Dictámenes, tipo de invalidez, modalidad, fechas, cobertura, montos, SCOMP, PAFE y saldos.",tipo:"pension",key:"RUN + DV + Indicador art.69 + Fecha emisión certif. saldo"},
+  {n:13,pre:"CNUA",nom:"CNU de afiliados",desc:"Capital Necesario Unitario al pensionarse o fallecer con sobrevivencia.",tipo:"pension",key:"RUN + DV + Tipo fondo + Tipo pensión"},
+  {n:14,pre:"AFPV",nom:"Afiliados pensionados por vejez",desc:"Solicitud, tipo de vejez, modalidad, montos, saldos, rebaja por trabajo pesado y SCOMP.",tipo:"pension",key:"RUN + DV + Indicador art.69 + Fecha emisión certif. saldo"},
+  {n:15,pre:"CMVI",nom:"Cambios de modalidad vejez/invalidez",desc:"Cambios de modalidad, fechas, modalidad seleccionada y prima traspasada.",tipo:"pension",key:"RUN + DV + Fecha solicitud cambio + Fecha traspaso prima"},
+  {n:16,pre:"PPVI",nom:"Pagos pensionados vejez/invalidez/ET",desc:"Pagos mensuales, tipo de pago, beneficios, excedentes, APS/PGU, RP real/nocional y montos.",tipo:"pension",key:"RUN + DV + Período + Fecha pago + Condición + Tipo RP + Tipo pago + Clasificación + Fecha ELD"},
+  {n:17,pre:"AFAL",nom:"Afiliados Fallecidos",desc:"Fecha de fallecimiento, situación al fallecer, saldos, cobertura, herencia, cuota mortuoria y sobrevivencia.",tipo:"fallecido",key:"RUN + DV"},
+  {n:18,pre:"AFPS",nom:"Fallecidos que causaron sobrevivencia",desc:"Pensión de referencia, aporte adicional, modalidad y fechas de pago.",tipo:"fallecido",key:"RUN + DV"},
+  {n:19,pre:"PBPS",nom:"Pagos beneficiarios sobrevivencia",desc:"Pagos a beneficiarios: porcentaje, tipo de pago, beneficios, región, país y montos.",tipo:"pension",key:"RUN + DV + RUN benef. + DV benef. + Condición + Tipo RP + Tipo pago + Fecha + Período + Clasificación"},
+  {n:20,pre:"CMGF",nom:"Cambios modalidad grupo familiar",desc:"Cambios de modalidad de pensión del grupo familiar del fallecido.",tipo:"pension",key:"RUN + DV + Fecha solicitud + Modalidad seleccionada"},
+  {n:21,pre:"RVVI",nom:"Rentas vitalicias vejez/invalidez",desc:"Tipo de RV, monto, compañía, prima, comisión, póliza y endoso.",tipo:"pension",key:"RUN + DV + Fecha traspaso prima única"},
+  {n:22,pre:"RVPS",nom:"Rentas vitalicias beneficiarios sobrevivencia",desc:"RV por beneficiario: pensión, prima, comisión y póliza.",tipo:"pension",key:"RUN + DV + RUN benef. + DV benef. + Fecha traspaso prima"},
+  {n:23,pre:"RVGF",nom:"Rentas vitalicias sobrevivencia grupo familiar",desc:"RV por grupo familiar, compañía, prima, prima unitaria, meses garantizados y diferimiento.",tipo:"pension",key:"RUN + DV + Fecha traspaso prima única"},
+  {n:24,pre:"ANVI",nom:"Anualidad RP/RT vejez/invalidez",desc:"Cálculo/recálculo de anualidad: saldos considerados, monto fórmula, monto a retirar y factor de ajuste.",tipo:"pension",key:"RUN + DV + Causal recálculo + Fecha cálculo + Saldos por tipo cuenta + Tipo pensión"},
+  {n:25,pre:"CNAN",nom:"CNU en cálculo de anualidad",desc:"CNU usado en cálculo o recálculo de anualidades de pensionados y sobrevivencia.",tipo:"pension",key:"RUN + DV + Tipo fondo + Tipo pensión"},
+  {n:26,pre:"ANGF",nom:"Anualidad RP/RT sobrevivencia grupo familiar",desc:"Cálculo anualidad sobrevivencia por grupo, saldos y tipo de retiro.",tipo:"pension",key:"RUN + DV + Causal recálculo + Fecha cálculo + Saldos por cuenta"},
+  {n:27,pre:"ANPS",nom:"Anualidad RP/RT sobrevivencia por beneficiario",desc:"Monto por beneficiario, causal de cese, nacionalidad y factor de ajuste.",tipo:"pension",key:"RUN + DV + RUN benef. + DV benef. + Fecha cálculo"},
+  {n:28,pre:"BEPS",nom:"Beneficiarios pensión de sobrevivencia",desc:"Parentesco, invalidez, cese, fallecimiento, país y factor de ajuste.",tipo:"beneficiario",key:"RUN + DV + RUN benef. + DV benef. + Parentesco + Sexo + Fecha nacimiento"},
+  {n:29,pre:"PBES",nom:"Potenciales beneficiarios sobrevivencia",desc:"Beneficiarios potenciales de afiliados pensionados o fallecidos: datos personales y parentesco.",tipo:"beneficiario",key:"RUN + DV + RUN benef. + DV benef. + Parentesco + Sexo + Fecha nacimiento"},
+  {n:30,pre:"DCPC",nom:"Deudas Cotizaciones Previsionales (Carátulas)",desc:"Identificación general de deudas previsionales, origen, empleador, estado y montos.",tipo:"deuda",key:"N° de serie único de la deuda"},
+  {n:31,pre:"DCRI",nom:"Deudas Cotizaciones Reconocidas (Detalle)",desc:"Detalle de involucrados asociados a deudas reconocidas.",tipo:"deuda",key:"— (sin llave única definida)"},
+  {n:32,pre:"DPRE",nom:"Deuda Presunta",desc:"Empleadores que no pagaron ni declararon cotizaciones de trabajadores.",tipo:"deuda",key:"RUT emp. + DV + RUN + DV + Tipo cuenta + Fecha determinación + Estado"},
+  {n:33,pre:"CREZ",nom:"Cotizaciones en Rezago",desc:"Cotizaciones en rezago y recuperadas durante el mes: afiliado, empleador y causal.",tipo:"deuda",key:"— (sin llave única definida)"},
+  {n:34,pre:"CSIS",nom:"Compañías de Seguros SIS",desc:"Compañías que cubren siniestros de invalidez y sobrevivencia.",tipo:"seguro",key:"RUN + DV + RUT Cía + DV Cía"},
+  {n:35,pre:"SPCI",nom:"Solicitudes pensión Convenios Internacionales",desc:"Solicitudes y concesiones bajo convenios internacionales, país, región y estado.",tipo:"internacional",key:"RUN + DV + Fecha recepción + País recepción + País convenio + Tipo pensión + Estado + Fecha concesión"},
+  {n:36,pre:"POCH",nom:"Pagos cuotas mortuorias y herencias",desc:"Pagos del mes por cuota mortuoria y herencia, montos y fechas.",tipo:"fallecido",key:"RUN + DV + Fecha pago herencia + Tipo cuenta + Tipo fondo"},
+  {n:37,pre:"SETR",nom:"Solicitudes efectuadas por trabajadores",desc:"Solicitudes manuales/electrónicas que implican movimientos financieros.",tipo:"movimiento",key:"— (sin llave única definida)"},
+  {n:38,pre:"APET",nom:"Afiliados pensionados por enfermedad terminal",desc:"Datos de afiliados acogidos a pensión anticipada por enfermedad terminal.",tipo:"pension",key:"RUN + DV"},
+  {n:39,pre:"DCET",nom:"Detalle cálculo capital enfermedad terminal",desc:"Insumos para calcular capital necesario para pensiones de sobrevivencia por ET.",tipo:"pension",key:"RUN + DV + RUN benef. + DV benef."},
+  {n:40,pre:"CHFE",nom:"Pagos cuotas mortuorias herencias financiamiento estatal",desc:"Pagos financiados por el Estado por cuota mortuoria y herencias.",tipo:"fallecido",key:"RUN + Identificador tipo pago"},
+  {n:41,pre:"EMCT",nom:"Empleadores que consignan en Tribunales",desc:"Empleadores con consignaciones judiciales históricas.",tipo:"deuda",key:"RUT emp. + DV + ROL o RIT"},
+  {n:42,pre:"CPET",nom:"Consignaciones pagadas en Tribunales",desc:"Detalle de pagos judiciales y trazabilidad hasta fondos de pensiones.",tipo:"deuda",key:"ROL o RIT + N° consignación + Fecha + Período + RUT trab. + DV"},
+  {n:43,pre:"RNIC",nom:"Stock ROL y NIC",desc:"Stock histórico de ROL y NIC otorgados por el sistema.",tipo:"identificador",key:"RUN + DV + ROL + DV ROL + NIC + DV NIC"},
+  {n:44,pre:"DCAF",nom:"Datos de contacto de afiliados",desc:"Datos de contacto registrados por afiliado y medio de contacto.",tipo:"contacto",key:"RUN + DV + Medio de contacto"},
 ];
 
-const data = {
-  overview: {
-    desc: "Informe mensual que cada AFP envía a la Superintendencia de Pensiones. Consolida TODA la información previsional: personas, cuentas, saldos, movimientos, bonos, pensionados, fallecidos, beneficiarios, deudas y rezagos.",
-    archivos: [
-      { n:1, pre:"PERS", nom:"Personas", desc:"Archivo maestro. Contiene TODOS los afiliados con cuenta, pensionados y fallecidos. Es la base para validar el resto.", tipo:"maestro", key:"RUN + DV" },
-      { n:2, pre:"BONO", nom:"Bonos de Reconocimiento", desc:"Bonos emitidos o en trámite: valores, estados, visación, liquidación.", tipo:"bono", key:"RUN + DV + Tipo Bono + Tipo Formato + Emisor" },
-      { n:3, pre:"DABR", nom:"Datos adicionales Bono transado/cedido", desc:"Info adicional de bonos transados: monto, TIR, compañía, bolsa, fechas.", tipo:"bono", key:"RUN + DV + Tipo Bono + Tipo Formato + Emisor" },
-      { n:4, pre:"CTAS", nom:"Cuentas Personales", desc:"Saldos en cuotas y pesos por RUN, tipo de cuenta, fondo y subcuenta. Control patrimonial central.", tipo:"saldo", key:"RUN + DV + Tipo cuenta + Tipo subcuenta + Tipo fondo" },
-      { n:5, pre:"SCAI", nom:"Saldos por Empleador (CAI)", desc:"Subsaldos de Cuenta de Ahorro de Indemnización por empleador, fondo, fechas laborales y pactos.", tipo:"saldo", key:"RUN + DV + RUT empleador + DV emp. + Tipo fondo" },
-      { n:6, pre:"SCCV", nom:"Saldos de CCICV", desc:"Saldos de cotizaciones voluntarias por régimen tributario, fondo y bonificación estatal.", tipo:"saldo", key:"RUN + DV + Tipo fondo + Régimen tributario" },
-      { n:7, pre:"SPVC", nom:"Saldos por Empleador APVC", desc:"Saldos APVC por plan, régimen tributario, trabajador, empleador, fondo y vigencia.", tipo:"saldo", key:"RUN + DV + Código plan APVC + Régimen + Tipo fondo" },
-      { n:8, pre:"SBEP", nom:"Saldos Bonificación Estatal APVC", desc:"Saldos de bonificación estatal APVC por afiliado y fondo (Art. 20L DL 3.500).", tipo:"saldo", key:"RUN + DV + Tipo fondo" },
-      { n:9, pre:"PPVC", nom:"Planes de APVC", desc:"Planes APVC suscritos por empleadores: vigencia, fechas, glosa.", tipo:"plan", key:"Código plan APVC + RUT empleador + DV emp." },
-      { n:10, pre:"MCCI", nom:"Movimientos Cuentas Personales", desc:"Todos los cargos y abonos del mes: empleador, fechas, código movimiento, pesos, cuotas, valor cuota y saldo posterior.", tipo:"movimiento", key:"— (sin llave única; se admiten múltiples movs por RUN)" },
-      { n:11, pre:"CDTF", nom:"Cambios/distribuciones/traspasos futuros", desc:"Cambios de fondo, asignaciones, distribuciones de saldos y traspasos futuros.", tipo:"movimiento", key:"RUN + DV + Tipo op. + Tipo cuenta + Fecha mov. + Primer fondo origen" },
-      { n:12, pre:"AFPI", nom:"Afiliados pensionados por invalidez", desc:"Dictámenes, tipo de invalidez, modalidad, fechas, cobertura, montos, SCOMP, PAFE y saldos.", tipo:"pension", key:"RUN + DV + Indicador art.69 + Fecha emisión certif. saldo" },
-      { n:13, pre:"CNUA", nom:"CNU de afiliados", desc:"Capital Necesario Unitario al pensionarse o fallecer con sobrevivencia.", tipo:"pension", key:"RUN + DV + Tipo fondo + Tipo pensión" },
-      { n:14, pre:"AFPV", nom:"Afiliados pensionados por vejez", desc:"Solicitud, tipo de vejez, modalidad, montos, saldos, rebaja por trabajo pesado y SCOMP.", tipo:"pension", key:"RUN + DV + Indicador art.69 + Fecha emisión certif. saldo" },
-      { n:15, pre:"CMVI", nom:"Cambios de modalidad vejez/invalidez", desc:"Cambios de modalidad, fechas, modalidad seleccionada y prima traspasada.", tipo:"pension", key:"RUN + DV + Fecha solicitud cambio + Fecha traspaso prima" },
-      { n:16, pre:"PPVI", nom:"Pagos pensionados vejez/invalidez/ET", desc:"Pagos mensuales, tipo de pago, beneficios, excedentes, APS/PGU, RP real/nocional y montos.", tipo:"pension", key:"RUN + DV + Período + Fecha pago + Condición + Tipo RP + Tipo pago + Clasificación + Fecha ELD" },
-      { n:17, pre:"AFAL", nom:"Afiliados Fallecidos", desc:"Fecha de fallecimiento, situación al fallecer, saldos, cobertura, herencia, cuota mortuoria y sobrevivencia.", tipo:"fallecido", key:"RUN + DV" },
-      { n:18, pre:"AFPS", nom:"Fallecidos que causaron sobrevivencia", desc:"Pensión de referencia, aporte adicional, modalidad y fechas de pago.", tipo:"fallecido", key:"RUN + DV" },
-      { n:19, pre:"PBPS", nom:"Pagos beneficiarios sobrevivencia", desc:"Pagos a beneficiarios: porcentaje, tipo de pago, beneficios, región, país y montos.", tipo:"pension", key:"RUN + DV + RUN benef. + DV benef. + Condición + Tipo RP + Tipo pago + Fecha + Período + Clasificación" },
-      { n:20, pre:"CMGF", nom:"Cambios modalidad grupo familiar", desc:"Cambios de modalidad de pensión del grupo familiar del fallecido.", tipo:"pension", key:"RUN + DV + Fecha solicitud + Modalidad seleccionada" },
-      { n:21, pre:"RVVI", nom:"Rentas vitalicias vejez/invalidez", desc:"Tipo de RV, monto, compañía, prima, comisión, póliza y endoso.", tipo:"pension", key:"RUN + DV + Fecha traspaso prima única" },
-      { n:22, pre:"RVPS", nom:"Rentas vitalicias beneficiarios sobrevivencia", desc:"RV por beneficiario: pensión, prima, comisión y póliza.", tipo:"pension", key:"RUN + DV + RUN benef. + DV benef. + Fecha traspaso prima" },
-      { n:23, pre:"RVGF", nom:"Rentas vitalicias sobrevivencia grupo familiar", desc:"RV por grupo familiar, compañía, prima, prima unitaria, meses garantizados y diferimiento.", tipo:"pension", key:"RUN + DV + Fecha traspaso prima única" },
-      { n:24, pre:"ANVI", nom:"Anualidad RP o RT vejez/invalidez", desc:"Cálculo/recálculo de anualidad: saldos considerados, monto fórmula, monto a retirar y factor de ajuste.", tipo:"pension", key:"RUN + DV + Causal recálculo + Fecha cálculo + Saldos por tipo cuenta + Tipo pensión" },
-      { n:25, pre:"CNAN", nom:"CNU en cálculo de anualidad", desc:"CNU usado en cálculo o recálculo de anualidades de pensionados y sobrevivencia.", tipo:"pension", key:"RUN + DV + Tipo fondo + Tipo pensión" },
-      { n:26, pre:"ANGF", nom:"Anualidad RP o RT sobrevivencia grupo familiar", desc:"Cálculo anualidad sobrevivencia por grupo, saldos y tipo de retiro.", tipo:"pension", key:"RUN + DV + Causal recálculo + Fecha cálculo + Saldos por cuenta" },
-      { n:27, pre:"ANPS", nom:"Anualidad RP o RT sobrevivencia por beneficiario", desc:"Monto por beneficiario, causal de cese, nacionalidad y factor de ajuste.", tipo:"pension", key:"RUN + DV + RUN benef. + DV benef. + Fecha cálculo" },
-      { n:28, pre:"BEPS", nom:"Beneficiarios pensión de sobrevivencia", desc:"Parentesco, invalidez, cese, fallecimiento, país y factor de ajuste.", tipo:"beneficiario", key:"RUN + DV + RUN benef. + DV benef. + Parentesco + Sexo + Fecha nacimiento" },
-      { n:29, pre:"PBES", nom:"Potenciales beneficiarios sobrevivencia", desc:"Beneficiarios potenciales de afiliados pensionados o fallecidos: datos personales y parentesco.", tipo:"beneficiario", key:"RUN + DV + RUN benef. + DV benef. + Parentesco + Sexo + Fecha nacimiento" },
-      { n:30, pre:"DCPC", nom:"Deudas Cotizaciones Previsionales (Carátulas)", desc:"Identificación general de deudas previsionales, origen, empleador, estado y montos.", tipo:"deuda", key:"N° de serie único de la deuda" },
-      { n:31, pre:"DCRI", nom:"Deudas Cotizaciones Reconocidas (Detalle)", desc:"Detalle de involucrados asociados a deudas reconocidas.", tipo:"deuda", key:"— (sin llave única definida)" },
-      { n:32, pre:"DPRE", nom:"Deuda Presunta", desc:"Empleadores que no pagaron ni declararon cotizaciones de trabajadores.", tipo:"deuda", key:"RUT emp. + DV + RUN + DV + Tipo cuenta + Fecha determinación + Estado" },
-      { n:33, pre:"CREZ", nom:"Cotizaciones en Rezago", desc:"Cotizaciones en rezago y recuperadas durante el mes: afiliado, empleador y causal.", tipo:"deuda", key:"— (sin llave única definida)" },
-      { n:34, pre:"CSIS", nom:"Compañías de Seguros SIS", desc:"Compañías que cubren siniestros de invalidez y sobrevivencia.", tipo:"seguro", key:"RUN + DV + RUT Cía + DV Cía" },
-      { n:35, pre:"SPCI", nom:"Solicitudes pensión Convenios Internacionales", desc:"Solicitudes y concesiones bajo convenios internacionales, país, región y estado.", tipo:"internacional", key:"RUN + DV + Fecha recepción + País recepción + País convenio + Tipo pensión + Estado + Fecha concesión" },
-      { n:36, pre:"POCH", nom:"Pagos cuotas mortuorias y herencias", desc:"Pagos del mes por cuota mortuoria y herencia, montos y fechas.", tipo:"fallecido", key:"RUN + DV + Fecha pago herencia + Tipo cuenta + Tipo fondo" },
-      { n:37, pre:"SETR", nom:"Solicitudes efectuadas por trabajadores", desc:"Solicitudes manuales/electrónicas que implican movimientos financieros.", tipo:"movimiento", key:"— (sin llave única definida)" },
-      { n:38, pre:"APET", nom:"Afiliados pensionados por enfermedad terminal", desc:"Datos de afiliados acogidos a pensión anticipada por enfermedad terminal.", tipo:"pension", key:"RUN + DV" },
-      { n:39, pre:"DCET", nom:"Detalle cálculo capital enfermedad terminal", desc:"Insumos para calcular capital necesario para pensiones de sobrevivencia por ET.", tipo:"pension", key:"RUN + DV + RUN benef. + DV benef." },
-      { n:40, pre:"CHFE", nom:"Pagos cuotas mortuorias herencias financiamiento estatal", desc:"Pagos financiados por el Estado por cuota mortuoria y herencias.", tipo:"fallecido", key:"RUN + Identificador tipo pago" },
-      { n:41, pre:"EMCT", nom:"Empleadores que consignan en Tribunales", desc:"Empleadores con consignaciones judiciales históricas.", tipo:"deuda", key:"RUT emp. + DV + ROL o RIT" },
-      { n:42, pre:"CPET", nom:"Consignaciones pagadas en Tribunales", desc:"Detalle de pagos judiciales y trazabilidad hasta fondos de pensiones.", tipo:"deuda", key:"ROL o RIT + N° consignación + Fecha + Período + RUT trab. + DV" },
-      { n:43, pre:"RNIC", nom:"Stock ROL y NIC", desc:"Stock histórico de ROL y NIC otorgados por el sistema.", tipo:"identificador", key:"RUN + DV + ROL + DV ROL + NIC + DV NIC" },
-      { n:44, pre:"DCAF", nom:"Datos de contacto de afiliados", desc:"Datos de contacto registrados por afiliado y medio de contacto.", tipo:"contacto", key:"RUN + DV + Medio de contacto" },
-    ]
-  },
-  saldos: {
-    grupos: [
-      {
-        titulo: "💼 Cuentas Personales (CTAS) — archivo 2.4",
-        prefijo: "ctas",
-        key: "RUN + DV + Tipo de cuenta + Tipo de subcuenta + Tipo de fondo",
-        campos: [
-          { campo:"Tipo de registro", formato:"X(01)", nota:"Siempre 'D' (registro de datos)", pos:1 },
-          { campo:"RUN persona", formato:"9(08)", nota:"Debe existir en PERS. Único en la AFP. Validar módulo 11.", pos:2 },
-          { campo:"DV del RUN", formato:"X(01)", nota:"Módulo 11", pos:3 },
-          { campo:"Tipo de cuenta", formato:"9(01)", nota:"1=CCICO, 2=CAV, 3=CAI, 4=CCICV, 5=CCIDC, 6=CCIAV, 7=CAPVC", pos:4 },
-          { campo:"Tipo de fondo", formato:"X(01)", nota:"A, B, C, D o E. Máximo 2 fondos por subcuenta para un mismo RUT (regla 04002)", pos:5 },
-          { campo:"Saldo en cuotas a la fecha del informe", formato:"9(08)V9(04)", nota:"Saldo final = saldo mes anterior ± movimientos MCCI. Debe cuadrar con Informes Diarios SP.", pos:6 },
-          { campo:"Saldo en pesos a la fecha del informe", formato:"9(10)", nota:"Cuotas × valor cuota cierre último día hábil. Si cuotas>0 entonces pesos>0 (regla 04003).", pos:7 },
-          { campo:"Tipo de subcuenta", formato:"9(02)", nota:"Ej: 11=CCICO oblig. trabajador, 12=CCICO empleador, etc.", pos:8 },
-        ],
-        regla: "El saldo final en cuotas debe cuadrar con los Informes Diarios de la SP. El saldo en pesos = cuotas × valor cuota de cierre del último día hábil del mes."
-      },
-      {
-        titulo: "🏭 Saldos por Empleador CAI (SCAI) — archivo 2.5",
-        prefijo: "scai",
-        key: "RUN + DV + RUT empleador + DV empleador + Tipo fondo",
-        campos: [
-          { campo:"RUN del trabajador", formato:"9(08)", nota:"Debe existir en PERS" },
-          { campo:"RUT del empleador", formato:"9(08)", nota:"Válido módulo 11" },
-          { campo:"Tipo de fondo", formato:"X(01)", nota:"A, B, C, D o E" },
-          { campo:"Saldo en cuotas", formato:"9(08)V9(02)", nota:"Solo subsaldos mayores que cero" },
-          { campo:"Saldo en pesos", formato:"9(10)", nota:"Cuotas × valor cuota cierre mes" },
-          { campo:"Fecha inicio laboral", formato:"9(08) aaaammdd", nota:"Inicio relación laboral con ese empleador" },
-          { campo:"Fecha de pacto", formato:"9(08) aaaammdd", nota:"Fecha del pacto de indemnización" },
-        ],
-        regla: "Solo se informan subsaldos mayores que cero. El total de subsaldos por empleador debe sumar el saldo total de la CAI (cuenta tipo 3) en CTAS."
-      },
-      {
-        titulo: "📈 Saldos CCICV – Cotizaciones Voluntarias (SCCV) — archivo 2.6",
-        prefijo: "sccv",
-        key: "RUN + DV + Tipo fondo + Régimen tributario",
-        campos: [
-          { campo:"RUN del trabajador", formato:"9(08)", nota:"Debe existir en PERS" },
-          { campo:"Régimen tributario", formato:"X(01)", nota:"Código de régimen tributario APV" },
-          { campo:"Tipo de fondo", formato:"X(01)", nota:"A, B, C, D o E" },
-          { campo:"Saldo en cuotas", formato:"9(08)V9(02)", nota:"Solo subsaldos > 0" },
-          { campo:"Saldo en pesos", formato:"9(10)", nota:"Cuotas × valor cuota cierre último día hábil" },
-          { campo:"Saldo cuotas bonificación estatal", formato:"9(08)V9(02)", nota:"Bonificación Estado Art. 20L DL 3.500" },
-          { campo:"Saldo pesos bonificación estatal", formato:"9(10)", nota:"Cuotas bonif. × valor cuota cierre" },
-        ],
-        regla: "Se informa por régimen tributario. La bonificación estatal se reporta SEPARADA del saldo del trabajador."
-      },
-      {
-        titulo: "👥 Saldos por Empleador APVC (SPVC) — archivo 2.7",
-        prefijo: "spvc",
-        key: "RUN + DV + Código plan APVC + Régimen tributario + Tipo fondo",
-        campos: [
-          { campo:"RUN del trabajador", formato:"9(08)", nota:"Debe existir en PERS" },
-          { campo:"RUT del empleador", formato:"9(08)", nota:"Empleador del plan APVC" },
-          { campo:"Tipo de plan APVC", formato:"X(01)", nota:"Código del plan suscrito" },
-          { campo:"Régimen tributario", formato:"X(01)", nota:"Código régimen tributario" },
-          { campo:"Tipo de fondo", formato:"X(01)", nota:"A, B, C, D o E" },
-          { campo:"Saldo afiliado en cuotas", formato:"9(08)V9(02)", nota:"Aporte del trabajador" },
-          { campo:"Saldo afiliado en pesos", formato:"9(10)", nota:"Cuotas afiliado × valor cuota cierre" },
-          { campo:"Saldo empleador en cuotas", formato:"9(08)V9(02)", nota:"Aporte del empleador" },
-          { campo:"Saldo empleador en pesos", formato:"9(10)", nota:"Cuotas empleador × valor cuota cierre" },
-        ],
-        regla: "Se reportan separados el aporte del afiliado y del empleador. La suma debe coincidir con el saldo total en CTAS cuenta tipo 7 (CAPVC)."
-      },
-      {
-        titulo: "🔄 Movimientos Cuentas Personales (MCCI) — archivo 2.10",
-        prefijo: "mcci",
-        key: "(no tiene llave única — se admiten múltiples movimientos por RUN)",
-        campos: [
-          { campo:"RUN del trabajador", formato:"9(08)", nota:"Debe existir en PERS (regla 10001)" },
-          { campo:"RUT del empleador", formato:"9(08)", nota:"Empleador que genera el movimiento" },
-          { campo:"Fecha de operación", formato:"9(08) aaaammdd", nota:"Entre 01/05/1981 y último día del informe (regla 10005). Anterior o igual a fecha acreditación." },
-          { campo:"Fecha de movimiento (acreditación)", formato:"9(08) aaaammdd", nota:"Entre 01/05/1981 y último día del informe (regla 10007)" },
-          { campo:"Código del movimiento", formato:"9(05)", nota:"Catálogo SP. NO se debe registrar código 3 en segunda posición (regla 10009)" },
-          { campo:"Monto en pesos", formato:"9(10)", nota:"No debe registrar valor cero (regla 10016)" },
-          { campo:"Monto en cuotas", formato:"9(06)V9(02)", nota:"Calculado con valor cuota operación" },
-          { campo:"Valor cuota de la operación", formato:"9(06)V9(02)", nota:"Valor cuota del día de la operación" },
-          { campo:"Período devengamiento remuneración", formato:"9(06) aaaamm", nota:"Mes al que corresponde la remuneración" },
-          { campo:"Remuneración imponible (pesos)", formato:"9(08)", nota:"Base imponible declarada por empleador" },
-          { campo:"Tipo de fondo", formato:"X(01)", nota:"A, B, C, D o E" },
-          { campo:"Saldo cuotas posterior a la operación", formato:"9(08)V9(02)", nota:"Saldo acumulado tras cada movimiento del mes" },
-        ],
-        regla: "El saldo posterior al ÚLTIMO movimiento del mes debe ser igual al saldo informado en CTAS. Cuadratura: CTAS mes anterior ± MCCI = CTAS mes actual."
-      },
-    ]
-  },
-  deudas: {
-    grupos: [
-      {
-        titulo: "📋 Deudas Cotizaciones Previsionales – Carátulas (DCPC) — archivo 2.30",
-        prefijo: "dcpc",
-        key: "N° de serie único de la deuda",
-        desc: "Carátula resumen de cada deuda. Es la tabla madre de las deudas.",
-        campos: [
-          { campo:"N° serie único de la deuda", formato:"9(20)", nota:"ID único por AFP, vincula con DCRI" },
-          { campo:"RUT del empleador deudor", formato:"9(08)", nota:"Empleador que generó la deuda" },
-          { campo:"Origen de la deuda", formato:"X(03)", nota:"DNP, DNPA, BOL, PAC, EIP, etc." },
-          { campo:"Estado de la deuda", formato:"X(02)", nota:"01=Vigente, 02=En cobranza judicial, 03=Pagada, etc." },
-          { campo:"Monto total deuda", formato:"9(12)", nota:"Capital + reajuste + intereses + recargos" },
-          { campo:"Monto pagado", formato:"9(12)", nota:"Lo que ya se ha abonado" },
-          { campo:"Saldo nominal adeudado", formato:"9(12)", nota:"Monto total menos lo pagado" },
-          { campo:"Tipo de cuenta", formato:"9(01)", nota:"Mismo catálogo CTAS: 1=CCICO, 2=CAV, etc." },
-          { campo:"Fecha de determinación", formato:"9(08) aaaammdd", nota:"Cuando se reconoció la deuda" },
-        ],
-        regla: "Toda deuda en DCPC debe tener al menos un registro en DCRI (detalle de involucrados). Si no, es error de consistencia entre archivos."
-      },
-      {
-        titulo: "👤 Deudas Cotizaciones Reconocidas – Detalle Involucrados (DCRI) — archivo 2.31",
-        prefijo: "dcri",
-        key: "— (sin llave única definida)",
-        desc: "Detalle trabajador a trabajador de qué debe cada empleador.",
-        campos: [
-          { campo:"N° serie único de la deuda", formato:"9(20)", nota:"Debe coincidir con N° en DCPC" },
-          { campo:"Tipo de cuenta de la deuda", formato:"9(01)", nota:"Mismo catálogo CTAS" },
-          { campo:"RUN del involucrado", formato:"9(08)", nota:"Trabajador afectado. Debe existir en PERS" },
-          { campo:"Monto total remuneración imponible", formato:"9(09)", nota:"Valor nominal. Cotización debe ser menor que esta" },
-          { campo:"Monto total de la cotización", formato:"9(09)", nota:"Nominal. Debe ser < remuneración imponible" },
-          { campo:"Monto reajuste", formato:"9(09)", nota:"Actualizado al último día del mes según tabla SP" },
-          { campo:"Monto intereses", formato:"9(10)", nota:"Actualizado al último día del mes según tabla SP" },
-          { campo:"Monto recargo fondo", formato:"9(09)", nota:"Actualizado al último día del mes" },
-          { campo:"Monto abonado a la deuda", formato:"9(10)", nota:"Pagos parciales realizados" },
-          { campo:"Saldo nominal adeudado", formato:"9(10)", nota:"Cotización nominal menos abonos" },
-        ],
-        regla: "El RUN del involucrado debe existir en PERS. La suma de saldos de DCRI por N° serie debe cuadrar con el saldo en DCPC."
-      },
-      {
-        titulo: "❓ Deuda Presunta (DPRE) — archivo 2.32",
-        prefijo: "dpre",
-        key: "RUT emp. + DV + RUN + DV + Tipo cuenta + Fecha determinación + Estado",
-        desc: "Empleadores que NO pagaron NI declararon cotizaciones del tercer mes anterior.",
-        campos: [
-          { campo:"RUT del empleador", formato:"9(08)", nota:"Empleador en incumplimiento" },
-          { campo:"RUN del afiliado", formato:"9(08)", nota:"Trabajador afectado" },
-          { campo:"Tipo de cuenta", formato:"X(01)", nota:"Mismo catálogo CTAS" },
-          { campo:"Período de devengamiento", formato:"9(06) aaaamm", nota:"Tercer mes anterior al mes informado" },
-          { campo:"Remuneración imponible", formato:"9(09)", nota:"Estimada si no declaró" },
-          { campo:"Monto nominal cotización", formato:"9(09)", nota:"Monto estimado en pesos" },
-          { campo:"Fecha determinación deuda presunta", formato:"9(08) aaaammdd", nota:"Cuando la AFP detectó el incumplimiento" },
-          { campo:"Estado de la deuda presunta", formato:"9(02)", nota:"01=Aclarada empleador, 02=Reconocida, 03=Pagada, 04=Regularizada AFP, 05=DNPA, 06=Vigente" },
-        ],
-        regla: "Se exige que no exista aviso de término o suspensión laboral que justifique el no pago. Si el estado pasa a 05, debe aparecer como DNPA en DCPC."
-      },
-      {
-        titulo: "⏰ Cotizaciones en Rezago (CREZ) — archivo 2.33",
-        prefijo: "crez",
-        key: "— (sin llave única definida)",
-        desc: "Cotizaciones que no se abonaron a tiempo en la cuenta del afiliado.",
-        campos: [
-          { campo:"RUN del afiliado", formato:"9(08)", nota:"Debe existir en PERS" },
-          { campo:"RUT del empleador", formato:"9(08)", nota:"Empleador que pagó fuera de plazo" },
-          { campo:"Tipo de cuenta", formato:"9(01)", nota:"Mismo catálogo CTAS" },
-          { campo:"Período de devengamiento", formato:"9(06) aaaamm", nota:"Mes al que corresponde la cotización atrasada" },
-          { campo:"Monto en rezago (pesos)", formato:"9(09)", nota:"Valor nominal de la cotización en rezago" },
-          { campo:"Estado del rezago", formato:"X(02)", nota:"Vigente o Recuperado en el mes" },
-          { campo:"Causal del rezago", formato:"X(02)", nota:"Código de causal según catálogo SP" },
-        ],
-        regla: "Si una cotización está en CREZ, NO debe estar abonada en MCCI de ese mes. Cuando se recupera, aparece en MCCI y se marca como recuperada en CREZ."
-      },
-    ]
-  },
-  relaciones: {
-    principales: [
-      { desde:"PERS", hacia:"TODOS", regla:"El RUN/DV de Personas es la llave base. Cualquier RUN en cualquier otro archivo DEBE existir en PERS.", critico:true },
-      { desde:"PERS", hacia:"CTAS", regla:"Todo RUN en Cuentas Personales debe estar en Personas, incluso si saldo es cero. Reglas EE50/EE51 + 01053-01059 (situación de cuentas).", critico:true },
-      { desde:"CTAS", hacia:"MCCI", regla:"Saldo CTAS mes actual = Saldo CTAS mes anterior ± todos los movimientos MCCI del mes (por RUN + tipo cuenta + tipo fondo).", critico:true },
-      { desde:"PERS", hacia:"AFPI", regla:"Pensionados por invalidez deben existir en PERS con estado 02 o 04. Regla 01043 cruza Indicador art.69.", critico:false },
-      { desde:"PERS", hacia:"AFPV", regla:"Pensionados por vejez deben cruzar por RUN/DV. Regla 01044 cruza Indicador art.69.", critico:false },
-      { desde:"PERS", hacia:"AFAL", regla:"Fallecidos deben estar en PERS con código de estado 03 o 04.", critico:true },
-      { desde:"AFAL", hacia:"AFPS", regla:"Solo fallecidos que causaron pensión de sobrevivencia pasan a AFPS. Regla 18003 obliga la existencia en AFAL.", critico:false },
-      { desde:"AFPS", hacia:"BEPS", regla:"Beneficiarios de sobrevivencia deben asociarse al RUN del causante (fallecido en AFPS).", critico:false },
-      { desde:"BEPS", hacia:"PBPS", regla:"Pagos a beneficiarios deben corresponder a beneficiarios informados en BEPS.", critico:false },
-      { desde:"AFPI/AFPV", hacia:"PPVI", regla:"Pagos mensuales (PPVI) deben corresponder a pensionados válidos. Regla 16017: el RUN en PPVI debe estar al menos en una AFP en AFPI o AFPV.", critico:true },
-      { desde:"AFPI/AFPV", hacia:"RVVI", regla:"Rentas vitalicias deben corresponder a pensionados por vejez o invalidez. Regla 21003: el RUN en RVVI debe estar al menos en una AFP en AFPI o AFPV.", critico:false },
-      { desde:"AFAL/AFPS", hacia:"RVPS/RVGF", regla:"Rentas vitalicias de sobrevivencia deben asociarse al causante y beneficiarios.", critico:false },
-      { desde:"ANVI/ANGF/ANPS", hacia:"PPVI/PBPS", regla:"Las anualidades calculadas (RP o RT) deben respaldar los montos pagados.", critico:true },
-      { desde:"BONO", hacia:"DABR", regla:"Solo bonos transados o cedidos requieren datos adicionales en DABR.", critico:false },
-      { desde:"RVVI", hacia:"MCCI/DABR", regla:"La prima traspasada debe ser consistente con cargos en MCCI y, si aplica, bono cedido/transado en DABR.", critico:true },
-      { desde:"DCPC", hacia:"DCRI", regla:"La carátula de deuda debe tener detalle de involucrados en DCRI con el mismo N° de serie.", critico:true },
-      { desde:"EMCT", hacia:"CPET", regla:"Empleadores con consignaciones judiciales deben relacionarse con pagos judiciales en CPET.", critico:false },
-    ]
-  },
-  errores: {
-    tipicos: [
-      { error:"RUN/DV inválido", ejemplo:"Módulo 11 incorrecto", prevencion:"Validar RUN y DV antes de generar archivos", codigo:"EE09 / 401", archivo:"Todos" },
-      { error:"RUN inexistente en Personas", ejemplo:"Registro en CTAS, AFAL, AFPI sin RUN en PERS", prevencion:"Control maestro contra archivo PERS", codigo:"Consistencia entre", archivo:"CTAS, AFAL, AFPI, AFPV, BEPS, PBPS" },
-      { error:"Código fuera de catálogo", ejemplo:"Estado, modalidad, tipo de pensión con valor no permitido", prevencion:"Parametrizar catálogos oficiales y bloquear valores no permitidos", codigo:"999", archivo:"PERS, AFPI, AFPV, PPVI" },
-      { error:"Fechas inválidas", ejemplo:"Fecha posterior al cierre del informe o anterior al rango permitido", prevencion:"Validación calendario y reglas por campo", codigo:"301", archivo:"Todos los que tienen campos de fecha" },
-      { error:"Inconsistencia de estado", ejemplo:"Persona viva con registro de fallecido, o pensionado sin evento asociado", prevencion:"Cruces automáticos PERS vs AFAL/AFPI/AFPV", codigo:"Consistencia entre", archivo:"PERS ↔ AFAL/AFPI/AFPV" },
-      { error:"Situación de cuentas mal construida", ejemplo:"Campo de 7 dígitos en PERS no coincide con cuentas existentes en CTAS", prevencion:"Recalcular el campo desde cuentas efectivas en CTAS", codigo:"EE50/EE51", archivo:"PERS campo 31 ↔ CTAS" },
-      { error:"Saldos no cuadran", ejemplo:"Saldo final CTAS ≠ saldo anterior + movimientos MCCI", prevencion:"Cuadratura mensual por RUN, cuenta y fondo", codigo:"Consistencia entre", archivo:"CTAS ↔ MCCI" },
-      { error:"Registro duplicado", ejemplo:"Misma combinación de llave repetida en el archivo", prevencion:"Definir llaves únicas por archivo y validar antes de transmitir", codigo:"eedr (etapa 2)", archivo:"Todos" },
-      { error:"Campos obligatorios en cero o blanco", ejemplo:"Fechas, montos o indicadores omitidos cuando son exigibles", prevencion:"Reglas condicionales por tipo de pensión, modalidad y evento", codigo:"EE10 / EE12", archivo:"Todos los que tienen campos condicionales" },
-      { error:"País/Región inconsistente", ejemplo:"País distinto de Chile con región distinta de 00", prevencion:"Regla automática país-región (pais!=Chile → región=00)", codigo:"Consistencia intra", archivo:"PERS, BEPS, SPCI, PPVI, PBPS" },
-      { error:"Prima RV inconsistente", ejemplo:"RVVI no cuadra con cargos en MCCI o bono en DABR", prevencion:"Conciliación de prima, UF, movimientos y bono", codigo:"Consistencia entre", archivo:"RVVI ↔ MCCI/DABR" },
-      { error:"Beneficiario sin causante", ejemplo:"BEPS/PBPS sin AFPS/AFAL asociado", prevencion:"Validación jerárquica causante-beneficiario", codigo:"Consistencia entre", archivo:"BEPS/PBPS ↔ AFPS/AFAL" },
-    ],
-    codigos: [
-      { cod:"EE01", desc:"Largo del registro incorrecto" },
-      { cod:"EE02", desc:"Tipo de registro incorrecto" },
-      { cod:"EE03", desc:"RUT AFP incorrecto" },
-      { cod:"EE04", desc:"Prefijo del archivo incorrecto" },
-      { cod:"EE05", desc:"Período incorrecto" },
-      { cod:"EE06", desc:"N° de registros incorrecto" },
-      { cod:"EE07", desc:"Caracteres incorrectos" },
-      { cod:"EE08", desc:"Dato no numérico" },
-      { cod:"EE09", desc:"RUT con DV incorrecto" },
-      { cod:"EE10", desc:"Valor en 0 cuando no corresponde" },
-      { cod:"EE11", desc:"RUT no es Cía de Seguros vigente" },
-      { cod:"EE12", desc:"Valor en blanco cuando no corresponde" },
-      { cod:"EE13", desc:"TIR Cesión inválida (>0 y <=15)" },
-      { cod:"EE14", desc:"TIR Transacción inválida (>0 y <=15)" },
-      { cod:"EE50", desc:"Incoherencia PERS.31 vs CTAS" },
-      { cod:"EE51", desc:"Incoherencia CTAS vs PERS.31" },
-      { cod:"301", desc:"Fecha incorrecta" },
-      { cod:"401", desc:"DV incorrecto" },
-      { cod:"999", desc:"Código fuera de catálogo" },
-    ]
-  },
-  conceptos: [
-    {
-      titulo:"PAFE – Pensión Autofinanciada de Referencia",
-      color:"#ec4899",
-      desc:"Indicador calculado (NO es un saldo). Es el monto de pensión que el afiliado puede financiar exclusivamente con sus fondos propios, sin considerar APS/PGU/GE.",
-      detalles:[
-        ["¿Es un saldo?", "NO. Es un cálculo actuarial expresado en UF."],
-        ["Formato", "9(04)V9(02) en UF. Tiene campo de Signo (+/-) e Indicador (S/N)"],
-        ["Dónde aparece", "AFPI (invalidez) y AFPV (vejez)"],
-        ["Relación APS/PGU", "Si PAFE < PMAS → puede tener derecho a complemento estatal"],
-        ["Relación Factor Ajuste", "Si PAFE ≥ PMAS → aplica factor de ajuste al RP"],
-        ["Validación clave", "Reglas 12044-12047 (AFPI): debe ser cero si cobertura por invalidez = 03"],
-      ]
-    },
-    {
-      titulo:"Módulo 11 – Validación de RUN/RUT",
-      color:"#3b82f6",
-      desc:"Cada RUN y RUT tiene un dígito verificador calculado con algoritmo módulo 11. Es la validación más básica y la más frecuente en errores.",
-      detalles:[
-        ["Algoritmo", "Multiplica dígitos por 2,3,4,5,6,7 ciclando desde la derecha → suma → divide por 11"],
-        ["Cálculo DV", "DV = 11 - residuo. Si DV=11 → 0. Si DV=10 → K"],
-        ["Códigos de error", "EE09 (estructura), 401 (validación de datos)"],
-        ["Aplica a", "TODOS los RUN/RUT en TODOS los archivos"],
-        ["Error típico", "DV calculado correcto pero RUN no existe en PERS"],
-        ["Prevención", "Validar módulo 11 ANTES de generar los archivos"],
-      ]
-    },
-    {
-      titulo:"Valor cuota – Por qué el saldo en pesos varía solo",
-      color:"#10b981",
-      desc:"Los fondos se guardan en CUOTAS, no en pesos. Cada fondo (A,B,C,D,E) tiene un valor cuota que cambia diariamente según rentabilidad.",
-      detalles:[
-        ["Saldo en cuotas", "Stock real. Invariable sin movimientos en MCCI."],
-        ["Saldo en pesos", "= Cuotas × valor cuota del último día hábil del mes. Fluctúa con el mercado."],
-        ["Regla clave", "Saldo cuotas CTAS mes N = Saldo cuotas CTAS mes N-1 ± movimientos MCCI"],
-        ["Diferencia esperada en pesos", "NO es error si no hubo movimientos: cambió el valor cuota"],
-        ["Validación 04003", "Si saldo cuotas > 0 entonces saldo pesos > 0"],
-        ["Dónde verificar", "CTAS campo 6 (cuotas) vs MCCI acumulado del mes"],
-      ]
-    },
-    {
-      titulo:"Saldo Real vs Saldo Nocional (post-2020)",
-      color:"#a855f7",
-      desc:"Para pensiones de sobrevivencia en RP existen dos versiones del saldo del causante fallecido. El nocional es teórico, calculado como si el causante no hubiera retirado ELD.",
-      detalles:[
-        ["Saldo Real", "Lo que efectivamente quedó en la cuenta"],
-        ["Saldo Nocional", "Saldo teórico sin descontar ELD retirado por el causante"],
-        ["Dónde aparece", "PBPS: campos 'RP nocional en UF' y 'RP real en UF'"],
-        ["Cuándo difieren", "Cuando el causante retiró ELD antes de morir"],
-        ["Importancia", "Si nocional > real, el IPS puede complementar la diferencia"],
-        ["Validación 19027/19028", "RP nocional > 0 si complemento sobrevivencia (autofinanciado/IPS) > 0"],
-      ]
-    },
-    {
-      titulo:"Factor de Ajuste – Sustentabilidad del RP",
-      color:"#14b8a6",
-      desc:"Número entre 0 y 1 que se multiplica anualmente a la pensión en Retiro Programado para calibrar el monto y que el saldo dure toda la vida del afiliado.",
-      detalles:[
-        ["Validación 12077", "El Factor de Ajuste debe ser mayor o igual a cero y MENOR que uno"],
-        ["No aplica cuando", "Afiliado recibe APS/PGU (Indicador art.17 transitorio = S). Reglas 12078, 14054"],
-        ["No aplica cuando", "Tipo pensión invalidez es 15, 16, 17 o 18 (regla 12080)"],
-        ["No aplica cuando", "Modalidad de pensión no es 08 o 09 (regla 12081)"],
-        ["Dónde está", "AFPI campo 37, AFPV campo 27, ANVI"],
-        ["Error frecuente", "Factor inconsistente entre AFPI/AFPV y ANVI para el mismo afiliado"],
-      ]
-    },
-    {
-      titulo:"Primer y Segundo Dictamen de Invalidez",
-      color:"#ef4444",
-      desc:"El proceso de invalidez tiene dos etapas con impacto directo en AFPI. Primer dictamen = transitoria (3 años). Segundo = definitiva.",
-      detalles:[
-        ["Tipos invalidez (campo 6)", "11=Total definitiva, 12=Parcial definitiva, 13=Total previa, 17=Total transitoria, 18=Parcial transitoria, 19=Total único dictamen"],
-        ["Cobertura SIS", "El SIS cubre la diferencia entre saldo y capital necesario al pensionarse"],
-        ["Validación 12011", "Modalidad = 00 si Tipo pensión = 17 o 18 (transitoria)"],
-        ["Validación 12013", "Modalidad ≠ 00 y ≠ 12, si Fecha segundo dictamen > 0 y SCOMP = S"],
-        ["Validación 12044", "Pensión referencia > 0 si Modalidad = 07 y Cobertura = 01 o 02"],
-        ["Error típico", "Informar campos del segundo dictamen cuando aún es transitoria"],
-      ]
-    },
-    {
-      titulo:"Cuota Mortuoria vs Herencia",
-      color:"#fb923c",
-      desc:"Al fallecer un afiliado, su saldo se destina a 3 lugares posibles: cuota mortuoria, herencia y/o pensiones de sobrevivencia.",
-      detalles:[
-        ["Cuota mortuoria", "Pago inmediato y único para gastos funerarios. Tope: 15 UF (ley PGU)"],
-        ["Herencia", "Remanente que no se usa para sobrevivencia ni cuota mortuoria. Va a proceso judicial"],
-        ["Financiamiento Estatal", "Si saldo < 15 UF para CM, el Estado paga la diferencia → archivo CHFE"],
-        ["Archivo POCH", "Pago normal con saldo del afiliado"],
-        ["Archivo CHFE", "Pago con financiamiento estatal"],
-        ["Combinación posible", "Un fallecido puede tener CM + herencia + sobrevivencia simultáneamente"],
-      ]
-    },
-    {
-      titulo:"DNP vs DNPA – Origen de la deuda",
-      color:"#dc2626",
-      desc:"Los dos orígenes principales de deuda en DCPC. Marcan dónde está la deuda en su ciclo de vida.",
-      detalles:[
-        ["DNP", "Declaración y No Pago. El empleador declaró pero no pagó. Monto exacto conocido"],
-        ["DNPA", "DNP con Acción judicial. Ya fue a cobranza. Tiene RIT (Rol Interno Tribunal)"],
-        ["BOL", "Boletín laboral"],
-        ["PAC", "Pago atrasado"],
-        ["EIP", "Empleador en incumplimiento presunto"],
-        ["Flujo típico", "DPRE (presunta) → DCPC (DNP) → si no paga → DCPC (DNPA) → EMCT/CPET"],
-        ["DPRE estado 05", "Cuando deuda presunta no se aclara → se transforma en DNPA en DCPC"],
-      ]
-    },
-    {
-      titulo:"OCE – Compensación Económica por Divorcio",
-      color:"#64748b",
-      desc:"Al divorciarse, un juez puede ordenar que parte del saldo previsional de un cónyuge se transfiera al otro. Crea una cuenta especial.",
-      detalles:[
-        ["Código de control PERS", "OCE — solo para estas cuentas (campo 20)"],
-        ["Tipo de incorporación", "06 = Afiliado voluntario por OCE (campo 19)"],
-        ["Tipo de cuenta en CTAS", "CCIAV (Cuenta de Capitalización Individual de Afiliado Voluntario)"],
-        ["Validación 01062", "Si Tipo incorporación es 05 o 06 → al menos un Tipo Cuenta con valor 6 en CTAS"],
-        ["Receptor", "Puede ser alguien que nunca fue afiliado AFP (se crea registro especial en PERS)"],
-        ["Error típico", "RUN en CTAS con código OCE sin registro correspondiente en PERS"],
-      ]
-    },
+const saldos=[
+  {titulo:"💼 Cuentas Personales (CTAS) — archivo 2.4",key:"RUN + DV + Tipo de cuenta + Tipo de subcuenta + Tipo de fondo",
+   campos:[
+    {c:"RUN persona",f:"9(08)",n:"Debe existir en PERS. Único en la AFP. Módulo 11."},
+    {c:"DV del RUN",f:"X(01)",n:"Módulo 11"},
+    {c:"Tipo de cuenta",f:"9(01)",n:"1=CCICO, 2=CAV, 3=CAI, 4=CCICV, 5=CCIDC, 6=CCIAV, 7=CAPVC"},
+    {c:"Tipo de fondo",f:"X(01)",n:"A, B, C, D o E. Máximo 2 fondos por subcuenta para un mismo RUT (regla 04002)"},
+    {c:"Saldo en cuotas",f:"9(08)V9(04)",n:"Saldo final = saldo mes anterior ± MCCI. Cuadrar con Informes Diarios SP."},
+    {c:"Saldo en pesos",f:"9(10)",n:"Cuotas × valor cuota cierre último día hábil. Si cuotas>0 entonces pesos>0 (regla 04003)"},
+    {c:"Tipo de subcuenta",f:"9(02)",n:"11=CCICO oblig. trabajador, 12=CCICO empleador, etc."},
+   ],
+   regla:"El saldo final en cuotas debe cuadrar con los Informes Diarios de la SP. Saldo pesos = cuotas × valor cuota cierre del último día hábil del mes."},
+  {titulo:"🏭 Saldos por Empleador CAI (SCAI) — archivo 2.5",key:"RUN + DV + RUT empleador + DV empleador + Tipo fondo",
+   campos:[
+    {c:"RUN del trabajador",f:"9(08)",n:"Debe existir en PERS"},
+    {c:"RUT del empleador",f:"9(08)",n:"Válido módulo 11"},
+    {c:"Tipo de fondo",f:"X(01)",n:"A, B, C, D o E"},
+    {c:"Saldo en cuotas",f:"9(08)V9(02)",n:"Solo subsaldos mayores que cero"},
+    {c:"Saldo en pesos",f:"9(10)",n:"Cuotas × valor cuota cierre mes"},
+    {c:"Fecha inicio laboral",f:"9(08) aaaammdd",n:"Inicio relación laboral con ese empleador"},
+    {c:"Fecha de pacto",f:"9(08) aaaammdd",n:"Fecha del pacto de indemnización"},
+   ],
+   regla:"Solo se informan subsaldos mayores que cero. El total de subsaldos por empleador debe sumar el saldo total de la CAI (tipo cuenta 3) en CTAS."},
+  {titulo:"📈 Saldos CCICV – Cotizaciones Voluntarias (SCCV) — archivo 2.6",key:"RUN + DV + Tipo fondo + Régimen tributario",
+   campos:[
+    {c:"RUN del trabajador",f:"9(08)",n:"Debe existir en PERS"},
+    {c:"Régimen tributario",f:"X(01)",n:"Código régimen tributario APV"},
+    {c:"Tipo de fondo",f:"X(01)",n:"A, B, C, D o E"},
+    {c:"Saldo en cuotas",f:"9(08)V9(02)",n:"Solo subsaldos > 0"},
+    {c:"Saldo en pesos",f:"9(10)",n:"Cuotas × valor cuota cierre último día hábil"},
+    {c:"Saldo cuotas bonif. estatal",f:"9(08)V9(02)",n:"Bonificación Estado Art. 20L DL 3.500"},
+    {c:"Saldo pesos bonif. estatal",f:"9(10)",n:"Cuotas bonif. × valor cuota cierre"},
+   ],
+   regla:"Se informa por régimen tributario. La bonificación estatal se reporta SEPARADA del saldo del trabajador."},
+  {titulo:"👥 Saldos por Empleador APVC (SPVC) — archivo 2.7",key:"RUN + DV + Código plan APVC + Régimen tributario + Tipo fondo",
+   campos:[
+    {c:"RUN del trabajador",f:"9(08)",n:"Debe existir en PERS"},
+    {c:"RUT del empleador",f:"9(08)",n:"Empleador del plan APVC"},
+    {c:"Tipo de plan APVC",f:"X(01)",n:"Código del plan suscrito"},
+    {c:"Régimen tributario",f:"X(01)",n:"Código régimen tributario"},
+    {c:"Tipo de fondo",f:"X(01)",n:"A, B, C, D o E"},
+    {c:"Saldo afiliado en cuotas",f:"9(08)V9(02)",n:"Aporte del trabajador"},
+    {c:"Saldo afiliado en pesos",f:"9(10)",n:"Cuotas afiliado × valor cuota cierre"},
+    {c:"Saldo empleador en cuotas",f:"9(08)V9(02)",n:"Aporte del empleador"},
+    {c:"Saldo empleador en pesos",f:"9(10)",n:"Cuotas empleador × valor cuota cierre"},
+   ],
+   regla:"Se reportan separados afiliado y empleador. La suma debe coincidir con CTAS tipo 7 (CAPVC)."},
+  {titulo:"🔄 Movimientos Cuentas Personales (MCCI) — archivo 2.10",key:"— (sin llave única; se admiten múltiples movimientos por RUN)",
+   campos:[
+    {c:"RUN del trabajador",f:"9(08)",n:"Debe existir en PERS (regla 10001)"},
+    {c:"RUT del empleador",f:"9(08)",n:"Empleador que genera el movimiento"},
+    {c:"Fecha de operación",f:"9(08) aaaammdd",n:"Entre 01/05/1981 y último día del informe (regla 10005)"},
+    {c:"Fecha de movimiento",f:"9(08) aaaammdd",n:"Entre 01/05/1981 y último día del informe (regla 10007)"},
+    {c:"Código del movimiento",f:"9(05)",n:"Catálogo SP. NO registrar código 3 en 2ª posición (regla 10009). Monto ≠ 0 (regla 10016)"},
+    {c:"Monto en pesos",f:"9(10)",n:"No debe registrar valor cero (regla 10016)"},
+    {c:"Monto en cuotas",f:"9(06)V9(02)",n:"Calculado con valor cuota operación"},
+    {c:"Período devengamiento remun.",f:"9(06) aaaamm",n:"Mes al que corresponde la remuneración"},
+    {c:"Remuneración imponible",f:"9(08)",n:"Base imponible declarada por empleador"},
+    {c:"Saldo cuotas posterior",f:"9(08)V9(02)",n:"Saldo acumulado tras cada movimiento del mes"},
+   ],
+   regla:"El saldo posterior al ÚLTIMO movimiento del mes debe ser igual al saldo en CTAS. Cuadratura: CTAS mes anterior ± MCCI = CTAS mes actual."},
+];
+
+const deudas=[
+  {titulo:"📋 Deudas Cotizaciones Previsionales – Carátulas (DCPC) — archivo 2.30",
+   key:"N° de serie único de la deuda",
+   desc:"Carátula resumen de cada deuda. Es la tabla madre.",
+   campos:[
+    {c:"N° serie único de la deuda",f:"9(20)",n:"ID único por AFP, vincula con DCRI"},
+    {c:"RUT del empleador deudor",f:"9(08)",n:"Empleador que generó la deuda"},
+    {c:"Origen de la deuda",f:"X(03)",n:"DNP, DNPA, BOL, PAC, EIP, etc."},
+    {c:"Estado de la deuda",f:"X(02)",n:"01=Vigente, 02=Cobranza judicial, 03=Pagada, etc."},
+    {c:"Monto total deuda",f:"9(12)",n:"Capital + reajuste + intereses + recargos"},
+    {c:"Monto pagado",f:"9(12)",n:"Lo que ya se ha abonado"},
+    {c:"Saldo nominal adeudado",f:"9(12)",n:"Monto total menos lo pagado"},
+    {c:"Tipo de cuenta",f:"9(01)",n:"Mismo catálogo CTAS: 1=CCICO, 2=CAV, etc."},
+    {c:"Fecha de determinación",f:"9(08) aaaammdd",n:"Cuando se reconoció la deuda"},
+   ],
+   regla:"Toda deuda en DCPC debe tener al menos un registro en DCRI. Si no, es error de consistencia entre archivos."},
+  {titulo:"👤 Deudas Cotizaciones Reconocidas – Detalle (DCRI) — archivo 2.31",
+   key:"— (sin llave única definida)",
+   desc:"Detalle trabajador a trabajador de qué debe cada empleador.",
+   campos:[
+    {c:"N° serie único de la deuda",f:"9(20)",n:"Debe coincidir con N° en DCPC"},
+    {c:"Tipo de cuenta de la deuda",f:"9(01)",n:"Mismo catálogo CTAS"},
+    {c:"RUN del involucrado",f:"9(08)",n:"Trabajador afectado. Debe existir en PERS"},
+    {c:"Monto total remun. imponible",f:"9(09)",n:"Cotización debe ser menor que esta"},
+    {c:"Monto total de la cotización",f:"9(09)",n:"Nominal. Debe ser < remuneración imponible"},
+    {c:"Monto reajuste",f:"9(09)",n:"Actualizado al último día del mes según tabla SP"},
+    {c:"Monto intereses",f:"9(10)",n:"Actualizado al último día del mes según tabla SP"},
+    {c:"Monto abonado a la deuda",f:"9(10)",n:"Pagos parciales realizados"},
+    {c:"Saldo nominal adeudado",f:"9(10)",n:"Cotización nominal menos abonos"},
+   ],
+   regla:"La suma de saldos de DCRI por N° serie debe cuadrar con el saldo en DCPC."},
+  {titulo:"❓ Deuda Presunta (DPRE) — archivo 2.32",
+   key:"RUT emp. + DV + RUN + DV + Tipo cuenta + Fecha determinación + Estado",
+   desc:"Empleadores que NO pagaron NI declararon cotizaciones del tercer mes anterior.",
+   campos:[
+    {c:"RUT del empleador",f:"9(08)",n:"Empleador en incumplimiento"},
+    {c:"RUN del afiliado",f:"9(08)",n:"Trabajador afectado"},
+    {c:"Tipo de cuenta",f:"X(01)",n:"Mismo catálogo CTAS"},
+    {c:"Período de devengamiento",f:"9(06) aaaamm",n:"Tercer mes anterior al mes informado"},
+    {c:"Remuneración imponible",f:"9(09)",n:"Estimada si no declaró"},
+    {c:"Monto nominal cotización",f:"9(09)",n:"Monto estimado en pesos"},
+    {c:"Fecha determinación",f:"9(08) aaaammdd",n:"Cuando la AFP detectó el incumplimiento"},
+    {c:"Estado de la deuda presunta",f:"9(02)",n:"01=Aclarada, 02=Reconocida, 03=Pagada, 04=Regularizada AFP, 05=DNPA, 06=Vigente"},
+   ],
+   regla:"Estado 05 implica que la deuda pasa a DNPA en DCPC. No debe existir aviso de término laboral que justifique el no pago."},
+  {titulo:"⏰ Cotizaciones en Rezago (CREZ) — archivo 2.33",
+   key:"— (sin llave única definida)",
+   desc:"Cotizaciones que no se abonaron a tiempo en la cuenta del afiliado.",
+   campos:[
+    {c:"RUN del afiliado",f:"9(08)",n:"Debe existir en PERS"},
+    {c:"RUT del empleador",f:"9(08)",n:"Empleador que pagó fuera de plazo"},
+    {c:"Tipo de cuenta",f:"9(01)",n:"Mismo catálogo CTAS"},
+    {c:"Período de devengamiento",f:"9(06) aaaamm",n:"Mes al que corresponde la cotización atrasada"},
+    {c:"Monto en rezago (pesos)",f:"9(09)",n:"Valor nominal de la cotización en rezago"},
+    {c:"Estado del rezago",f:"X(02)",n:"Vigente o Recuperado en el mes"},
+    {c:"Causal del rezago",f:"X(02)",n:"Código de causal según catálogo SP"},
+   ],
+   regla:"Si una cotización está en CREZ, NO debe estar abonada en MCCI ese mes. Al recuperarse: aparece en MCCI y se marca recuperada en CREZ."},
+];
+
+const relaciones=[
+  {desde:"PERS",hacia:"TODOS",regla:"El RUN/DV de Personas es la llave base. Cualquier RUN en cualquier otro archivo DEBE existir en PERS.",critico:true},
+  {desde:"PERS",hacia:"CTAS",regla:"Todo RUN en CTAS debe estar en PERS, incluso si saldo es cero. Reglas EE50/EE51 + 01053-01059 (situación de cuentas, 7 dígitos).",critico:true},
+  {desde:"CTAS",hacia:"MCCI",regla:"Saldo cuotas CTAS mes actual = Saldo cuotas CTAS mes anterior ± movimientos MCCI (por RUN + tipo cuenta + tipo fondo).",critico:true},
+  {desde:"PERS",hacia:"AFAL",regla:"Fallecidos deben estar en PERS con código de estado 03 o 04.",critico:true},
+  {desde:"AFPI/AFPV",hacia:"PPVI",regla:"Regla 16017: RUN en PPVI debe estar al menos en una AFP en AFPI o AFPV con modalidad compatible.",critico:true},
+  {desde:"ANVI/ANGF/ANPS",hacia:"PPVI/PBPS",regla:"Las anualidades calculadas (RP o RT) deben respaldar los montos pagados.",critico:true},
+  {desde:"DCPC",hacia:"DCRI",regla:"La carátula de deuda debe tener detalle de involucrados en DCRI con el mismo N° de serie.",critico:true},
+  {desde:"RVVI",hacia:"MCCI/DABR",regla:"La prima traspasada debe ser consistente con cargos en MCCI y, si aplica, bono cedido en DABR.",critico:true},
+  {desde:"PERS",hacia:"AFPI",regla:"Pensionados por invalidez deben existir en PERS con estado 02 o 04. Regla 01043 cruza Indicador art.69.",critico:false},
+  {desde:"PERS",hacia:"AFPV",regla:"Pensionados por vejez deben cruzar por RUN/DV. Regla 01044 cruza Indicador art.69.",critico:false},
+  {desde:"AFAL",hacia:"AFPS",regla:"Solo fallecidos que causaron pensión de sobrevivencia pasan a AFPS. Regla 18003 obliga existencia en AFAL.",critico:false},
+  {desde:"AFPS",hacia:"BEPS",regla:"Beneficiarios de sobrevivencia deben asociarse al RUN del causante (fallecido en AFPS).",critico:false},
+  {desde:"BEPS",hacia:"PBPS",regla:"Pagos a beneficiarios deben corresponder a beneficiarios informados en BEPS.",critico:false},
+  {desde:"AFAL/AFPS",hacia:"RVPS/RVGF",regla:"Rentas vitalicias de sobrevivencia deben asociarse al causante y beneficiarios.",critico:false},
+  {desde:"AFPI/AFPV",hacia:"RVVI",regla:"Regla 21003: RUN en RVVI debe estar al menos en una AFP en AFPI o AFPV.",critico:false},
+  {desde:"BONO",hacia:"DABR",regla:"Solo bonos transados o cedidos requieren datos adicionales en DABR.",critico:false},
+  {desde:"EMCT",hacia:"CPET",regla:"Empleadores con consignaciones judiciales deben relacionarse con pagos judiciales en CPET.",critico:false},
+];
+
+const erroresTipicos=[
+  {error:"RUN/DV inválido",ej:"Módulo 11 incorrecto",prev:"Validar módulo 11 antes de generar archivos",cod:"EE09 / 401",arch:"Todos"},
+  {error:"RUN inexistente en PERS",ej:"Registro en CTAS, AFAL, AFPI sin RUN en PERS",prev:"Control maestro contra archivo PERS",cod:"Consist. entre",arch:"CTAS, AFAL, AFPI, AFPV, BEPS, PBPS"},
+  {error:"Código fuera de catálogo",ej:"Estado, modalidad, tipo de pensión con valor no permitido",prev:"Parametrizar catálogos y bloquear valores no permitidos",cod:"999",arch:"PERS, AFPI, AFPV, PPVI"},
+  {error:"Fechas inválidas",ej:"Fecha posterior al cierre del informe o anterior al rango",prev:"Validación calendario y reglas por campo",cod:"301",arch:"Todos los que tienen fechas"},
+  {error:"Inconsistencia de estado",ej:"Persona viva con registro de fallecido o pensionado sin evento",prev:"Cruces automáticos PERS vs AFAL/AFPI/AFPV",cod:"Consist. entre",arch:"PERS ↔ AFAL/AFPI/AFPV"},
+  {error:"Situación de cuentas mal construida",ej:"Campo 7 dígitos en PERS no coincide con CTAS",prev:"Recalcular campo desde cuentas efectivas en CTAS",cod:"EE50/EE51",arch:"PERS campo 31 ↔ CTAS"},
+  {error:"Saldos no cuadran",ej:"Saldo final CTAS ≠ saldo anterior + movimientos MCCI",prev:"Cuadratura mensual por RUN, cuenta y fondo",cod:"Consist. entre",arch:"CTAS ↔ MCCI"},
+  {error:"Registro duplicado",ej:"Misma combinación de llave repetida en el archivo",prev:"Definir llaves únicas por archivo y validar antes de transmitir",cod:"eedr (etapa 2)",arch:"Todos"},
+  {error:"Campos obligatorios en cero/blanco",ej:"Fechas, montos o indicadores omitidos cuando son exigibles",prev:"Reglas condicionales por tipo de pensión, modalidad y evento",cod:"EE10 / EE12",arch:"Todos con campos condicionales"},
+  {error:"País/Región inconsistente",ej:"País distinto de Chile con región distinta de 00",prev:"Regla automática país-región (pais≠CL → región=00)",cod:"Consist. intra",arch:"PERS, BEPS, SPCI, PPVI, PBPS"},
+  {error:"Prima RV inconsistente",ej:"RVVI no cuadra con cargos en MCCI o bono en DABR",prev:"Conciliación de prima, UF, movimientos y bono",cod:"Consist. entre",arch:"RVVI ↔ MCCI/DABR"},
+  {error:"Beneficiario sin causante",ej:"BEPS/PBPS sin AFPS/AFAL asociado",prev:"Validación jerárquica causante-beneficiario",cod:"Consist. entre",arch:"BEPS/PBPS ↔ AFPS/AFAL"},
+];
+
+const codigosError=[
+  {cod:"EE01",desc:"Largo del registro incorrecto"},{cod:"EE02",desc:"Tipo de registro incorrecto"},
+  {cod:"EE03",desc:"RUT AFP incorrecto"},{cod:"EE04",desc:"Prefijo del archivo incorrecto"},
+  {cod:"EE05",desc:"Período incorrecto"},{cod:"EE06",desc:"N° de registros incorrecto"},
+  {cod:"EE07",desc:"Caracteres incorrectos"},{cod:"EE08",desc:"Dato no numérico"},
+  {cod:"EE09",desc:"RUT con DV incorrecto"},{cod:"EE10",desc:"Valor en 0 cuando no corresponde"},
+  {cod:"EE11",desc:"RUT no es Cía de Seguros vigente"},{cod:"EE12",desc:"Valor en blanco cuando no corresponde"},
+  {cod:"EE13",desc:"TIR Cesión inválida (>0 y ≤15)"},{cod:"EE14",desc:"TIR Transacción inválida (>0 y ≤15)"},
+  {cod:"EE50",desc:"Incoherencia PERS.31 → CTAS"},{cod:"EE51",desc:"Incoherencia CTAS → PERS.31"},
+  {cod:"301",desc:"Fecha incorrecta"},{cod:"401",desc:"DV incorrecto"},{cod:"999",desc:"Código fuera de catálogo"},
+];
+
+const diagnosticoRapido=[
+  ["RUN no existe o DV inválido","PERS","Validar módulo 11. Buscar el RUN en PERS primero. Códigos: EE09, 401."],
+  ["Saldo no cuadra al cierre","CTAS ↔ MCCI","Sumar MCCI del mes (mismo RUN+cuenta+fondo). Comparar: CTAS mes ant. + MCCI = CTAS mes actual."],
+  ["Pensionado sin dictamen","AFPI o AFPV","Verificar campos dictamen, fecha y modalidad. Cruzar estado en PERS campo 21."],
+  ["Pago a pensionado sin respaldo","PPVI ↔ AFPI/AFPV","Regla 16017: RUN en PPVI debe estar en AFPI o AFPV (al menos en una AFP) con modalidad compatible."],
+  ["Beneficiario sin causante","BEPS ↔ AFPS/AFAL","Reglas 19003/19004: RUN del causante debe estar en AFAL y AFPS."],
+  ["Deuda sin detalle de involucrados","DCPC ↔ DCRI","Toda deuda en DCPC debe tener registros en DCRI con el mismo N° de serie."],
+  ["Prima RV no cuadra","RVVI ↔ MCCI/DABR","Buscar en MCCI el cargo de traspaso. Si el bono fue cedido, verificar DABR."],
+  ["Cotización no abonada","CREZ o DPRE","Si está en rezago → CREZ. Si NO declaró ni pagó → DPRE."],
+  ["Situación de cuentas inconsistente","PERS.31 ↔ CTAS","Reglas 01053-01059 + EE50/EE51. Recalcular campo desde CTAS efectivo."],
+  ["PAFE inconsistente","AFPI/AFPV ↔ CTAS/CNAN","Verificar CNU vigente y que saldos correspondan al período de pensión."],
+  ["Factor de ajuste incorrecto","AFPI, AFPV, ANVI","Regla 12077: debe ser ≥0 y <1. Cero si art.17 transitorio, si modalidad inválida o pensión transitoria."],
+];
+
+/* ── Conceptos ── */
+const conceptos=[
+  {id:"pafe",emoji:"💡",titulo:"PAFE – Pensión Autofinanciada de Referencia",color:"#ec4899",
+   desc:"Indicador calculado (NO es un saldo). Representa el monto de pensión que el afiliado puede financiar exclusivamente con sus fondos propios, sin APS/PGU/GE.",
+   detalles:[
+    ["¿Es un saldo?","NO. Es un cálculo actuarial expresado en UF"],
+    ["Formato","9(04)V9(02) en UF, con campo Signo (+/-) e Indicador (S/N)"],
+    ["Dónde aparece","AFPI (invalidez) y AFPV (vejez)"],
+    ["Relación APS/PGU","Si PAFE < PMAS → puede tener derecho a complemento estatal"],
+    ["Relación Factor Ajuste","Si PAFE ≥ PMAS → aplica factor de ajuste al RP"],
+    ["Validación 12044-12047","Debe ser cero si cobertura por invalidez = 03"],
+   ]},
+  {id:"modulo11",emoji:"🔢",titulo:"Módulo 11 – Validación de RUN/RUT",color:"#3b82f6",
+   desc:"Cada RUN y RUT tiene un dígito verificador (DV) calculado con el algoritmo módulo 11. Es la validación más básica y la más frecuente en errores EE09/401.",
+   detalles:[
+    ["Algoritmo","Multiplica dígitos por 2,3,4,5,6,7 ciclando desde la derecha → suma → divide por 11"],
+    ["Cálculo DV","DV = 11 − residuo. Si DV=11 → 0. Si DV=10 → K"],
+    ["Códigos de error","EE09 (estructura), 401 (validación de datos)"],
+    ["Aplica a","TODOS los RUN/RUT en TODOS los archivos"],
+    ["Error típico","DV correcto pero RUN no existe en PERS"],
+    ["Prevención","Validar módulo 11 ANTES de generar los archivos"],
+   ]},
+  {id:"valcuota",emoji:"📈",titulo:"Valor cuota – Por qué el saldo en pesos varía solo",color:"#10b981",
+   desc:"Los fondos se guardan en CUOTAS, no en pesos. Cada fondo (A,B,C,D,E) tiene un valor cuota que cambia diariamente según rentabilidad.",
+   detalles:[
+    ["Saldo en cuotas","Stock real. Invariable sin movimientos en MCCI"],
+    ["Saldo en pesos","= Cuotas × valor cuota del último día hábil del mes. Fluctúa con el mercado"],
+    ["Regla clave","Saldo cuotas CTAS mes N = Saldo cuotas CTAS mes N−1 ± MCCI"],
+    ["Diferencia esperada","Si no hubo MCCI pero el saldo en pesos cambió → no es error: cambió el valor cuota"],
+    ["Validación 04003","Si saldo cuotas > 0 entonces saldo pesos > 0"],
+    ["Dónde verificar","CTAS campo 6 (cuotas) vs MCCI acumulado del mes"],
+   ]},
+  {id:"nocional",emoji:"👻",titulo:"Saldo Real vs Saldo Nocional (post-2020)",color:"#a855f7",
+   desc:"Para pensiones de sobrevivencia en RP existen dos versiones del saldo del causante fallecido. El nocional es teórico, calculado como si el causante no hubiera retirado ELD.",
+   detalles:[
+    ["Saldo Real","Lo que efectivamente quedó en la cuenta"],
+    ["Saldo Nocional","Saldo teórico sin descontar ELD retirado por el causante"],
+    ["Dónde aparece","PBPS: campos 'RP nocional en UF' y 'RP real en UF'"],
+    ["Cuándo difieren","Cuando el causante retiró ELD antes de morir"],
+    ["Importancia","Si nocional > real, el IPS puede complementar la diferencia"],
+    ["Validación 19027/19028","RP nocional > 0 si complemento sobrevivencia > 0"],
+   ]},
+  {id:"factor",emoji:"⚖️",titulo:"Factor de Ajuste – Sustentabilidad del RP",color:"#14b8a6",
+   desc:"Número entre 0 y 1 que se multiplica anualmente a la pensión en Retiro Programado para que el saldo dure toda la vida del afiliado.",
+   detalles:[
+    ["Validación 12077","Debe ser ≥ 0 y MENOR que 1"],
+    ["No aplica","Si Indicador art.17 transitorio = S (reglas 12078, 14054)"],
+    ["No aplica","Si tipo pensión invalidez es 15, 16, 17 o 18 (regla 12080)"],
+    ["No aplica","Si modalidad no es 08 ni 09 (regla 12081)"],
+    ["Dónde está","AFPI campo 37, AFPV campo 27, ANVI"],
+    ["Error frecuente","Factor inconsistente entre AFPI/AFPV y ANVI para el mismo afiliado"],
+   ]},
+  {id:"dictamen",emoji:"⚕️",titulo:"Primer y Segundo Dictamen de Invalidez",color:"#ef4444",
+   desc:"El proceso de invalidez tiene dos etapas. Primer dictamen = invalidez TRANSITORIA (~3 años, cubre SIS). Segundo dictamen = invalida DEFINITIVA (fija la pensión permanentemente).",
+   detalles:[
+    ["Tipos invalidez (campo 6)","11=Total definitiva, 12=Parcial definitiva, 13=Total previa, 17=Total transitoria, 18=Parcial transitoria, 19=Total único dictamen"],
+    ["Cobertura SIS","El SIS cubre la diferencia entre saldo y capital necesario al pensionarse"],
+    ["Validación 12011","Modalidad = 00 si tipo pensión = 17 o 18 (transitoria)"],
+    ["Validación 12013","Modalidad ≠ 00 y ≠ 12 si Fecha 2° dictamen > 0 y SCOMP = S"],
+    ["Error típico","Informar campos del 2° dictamen cuando aún está en etapa transitoria"],
+    ["PAFE en invalidez","Se informa la PAFE de la invalidez definitiva, aunque haya sido transitoria primero"],
+   ]},
+  {id:"scomp",emoji:"🏦",titulo:"SCOMP – Sistema de Consultas y Ofertas",color:"#f59e0b",
+   desc:"Proceso obligatorio por el que el afiliado cotiza pensiones a todas las aseguradoras antes de elegir modalidad. Genera campos críticos en AFPI y AFPV que forman parte de sus llaves únicas.",
+   detalles:[
+    ["Qué genera","Indicador de ingreso a SCOMP (S/N) y Fecha emisión Certificado de Saldo"],
+    ["Llave única AFPI/AFPV","Fecha emisión certificado de saldo es parte de la llave única de AFPI y AFPV"],
+    ["Validación 12013","Si SCOMP = S y hay 2° dictamen → modalidad ≠ 00 y ≠ 12"],
+    ["Validación 14039","Indicador SCOMP = N si fecha solicitud pensión < 19/08/2004"],
+    ["Error típico","Fecha del certificado no coincide entre archivos del mismo período → error de llave duplicada"],
+    ["Tipos de validación","Afecta validaciones I (intra) y E (entre archivos) por su rol en llaves únicas"],
+   ]},
+  {id:"art17",emoji:"📜",titulo:"Indicador Artículo 17 Transitorio",color:"#8b5cf6",
+   desc:"Marca si el pensionado se acogió a las normas transitorias de la reforma previsional de 2008. Cambia completamente las reglas de cálculo: no aplica factor de ajuste, no va a SCOMP, pensión calculada diferente.",
+   detalles:[
+    ["Dónde aparece","AFPI campo 4, AFPV campo 4. También Indicador Pensionado Antiguo Sistema en PERS campo 38"],
+    ["Validación 12078","Factor de Ajuste debe ser CERO si art.17 transitorio = S"],
+    ["Validación 01047/01048","PERS campo 38 debe ser S si art.17 transitorio en AFPI/AFPV es S"],
+    ["Sin SCOMP","Afiliados art.17 no realizan proceso SCOMP"],
+    ["Efecto en pagos","PPVI tiene campos diferenciados para estos pensionados"],
+    ["Error típico","Factor de ajuste ≠ 0 cuando el indicador es S → error crítico de validación"],
+   ]},
+  {id:"trabajopesado",emoji:"🏗️",titulo:"Trabajo Pesado – Sobrecotización y Rebaja de Edad",color:"#fb923c",
+   desc:"Las ocupaciones calificadas como trabajo pesado obligan a sobrecotización adicional (2% o 4%) y a una rebaja de edad para pensionarse anticipadamente.",
+   detalles:[
+    ["Campos en PERS","Campo 15 (indicador S/N/Z/X), campo 16 (porcentaje 2 o 4), campo 17 (contador períodos 2%), campo 18 (contador períodos 4%)"],
+    ["Validación 01013","Si campo 15 = S → campo 16 debe ser 2 o 4"],
+    ["Validación 01014","Si campo 15 = S y campo 16 = 2 → campo 17 debe ser > 0"],
+    ["Validación 01015","Si campo 15 = S y campo 16 = 4 → campo 18 debe ser > 0"],
+    ["Validación 01016","Si campo 15 = N, Z o X → campo 16 debe ser 0"],
+    ["En AFPV","Tiene campo específico 'rebaja por trabajo pesado' y SCOMP asociado"],
+    ["Error típico","Informar porcentaje de sobrecotización sin informar el contador de períodos, o viceversa"],
+   ]},
+  {id:"apadicionalseguros",emoji:"🛡️",titulo:"Aporte Adicional del Empleador (SIS)",color:"#0ea5e9",
+   desc:"Cuando el capital acumulado de un afiliado no alcanza para financiar las pensiones de sobrevivencia al fallecer, el SIS (Seguro de Invalidez y Sobrevivencia) complementa la diferencia. Este monto es el 'aporte adicional'.",
+   detalles:[
+    ["Qué es","Complemento del SIS (seguro privado) cuando el saldo del causante no alcanza para la pensión"],
+    ["NO es APS/PGU","El APS/PGU es estatal. El aporte adicional proviene del seguro contratado por la AFP"],
+    ["Dónde aparece","AFAL campo 8 (monto aporte adicional en UF), AFPS campo 5 (aporte adicional en UF)"],
+    ["Validación 17013","Si situación al fallecer = 07 → cobertura debe ser 01"],
+    ["Validación 18007","Monto aporte adicional debe ser > 0 si cobertura al fallecer = 01 o 02"],
+    ["Validación 18011","Monto aporte adicional debe ser > 0 si cobertura = 01/02 y SCOMP = S"],
+    ["Error típico","Cobertura informada sin el monto de aporte adicional correspondiente"],
+   ]},
+  {id:"eld",emoji:"💸",titulo:"ELD – Excedente de Libre Disposición",color:"#84cc16",
+   desc:"El saldo que queda después de financiar la PMAS. El afiliado puede retirarlo en efectivo al pensionarse. Su retiro genera la diferencia entre saldo real y saldo nocional cuando el causante fallece.",
+   detalles:[
+    ["Qué es","Saldo propio que excede lo necesario para financiar la pensión máxima (PMAS)"],
+    ["Dónde en PPVI","Campo 25: 'Monto excedente libre disposición en UF', campo 26: Fecha de pago ELD"],
+    ["Validación 16023","Si monto ELD > 0 → Tipo de pago NO puede ser 07"],
+    ["Conexión con nocional","Si el causante retiró ELD antes de morir → saldo real < saldo nocional"],
+    ["Conexión con PMAS","Si PAFE > PMAS → el excedente puede retirarse como ELD al pensionarse"],
+    ["Error típico","Fecha de pago ELD informada con saldo ELD = 0, o viceversa"],
+   ]},
+  {id:"codmovimiento",emoji:"🔑",titulo:"Estructura del Código de Movimiento (MCCI)",color:"#38bdf8",
+   desc:"Es el campo más rico y complejo del informe. Tiene 5 dígitos con un patrón estructurado: la primera posición indica el tipo de cuenta, la segunda el origen del movimiento, y las restantes el tipo de operación.",
+   detalles:[
+    ["Estructura","XYNNN: X=tipo de cuenta (1=CCICO, 2=CAV...), Y=origen (1=pago normal, 3=DNP...), NNN=tipo operación"],
+    ["Código 3 en 2ª posición","PROHIBIDO para cotizaciones obligatorias y APVC (regla 10009). Solo declaración sin pago."],
+    ["11001","Cotización obligatoria dependiente (el más frecuente)"],
+    ["11073 / 12073","Prima SIS. Sujeta a tope porcentual según período de devengamiento (reglas 10014/10015)"],
+    ["21002","Depósito en Cuenta de Ahorro Voluntario (CAV)"],
+    ["Catálogo completo","Disponible en sitio web SP sección Transferencia Electrónica de Archivos → archivosEntreAFP"],
+    ["Validación 10008","Los códigos deben corresponder a los definidos en el documento SP"],
+   ]},
+];
+
+/* ── Validaciones reales ── */
+const valProceso=[
+  {etapa:"1. Estructura inicial",valida:"Largo de registro, tipo, RUT AFP, prefijo, período, N° registros, caracteres, numéricos, DV, ceros/blancos",archivo:"eestaaaamm.ext + eestprefijoaaaamm.ext",consecuencia:"Rechaza el Informe COMPLETO",critico:true},
+  {etapa:"2a. Coherencia entre archivos",valida:"Coherencia entre campos de distintos archivos (ej: situación cuentas PERS vs CTAS)",archivo:"eecdprefijoaaaamm.ext",consecuencia:"Rechaza el Informe COMPLETO",critico:true},
+  {etapa:"2b. Datos repetidos",valida:"Registros duplicados según llave única definida por archivo",archivo:"eedrprefijoaaaamm.ext",consecuencia:"Rechaza el Informe COMPLETO",critico:true},
+  {etapa:"3a. Tipo de dato/formato",valida:"Fechas válidas (301), DV incorrecto (401)",archivo:"tdatprefijoaaaamm.ext",consecuencia:"AFP corrige y reenvía ese archivo",critico:false},
+  {etapa:"3b. Codificación",valida:"Códigos fuera de catálogo (999)",archivo:"contprefijoaaaamm.ext",consecuencia:"AFP corrige y reenvía ese archivo",critico:false},
+  {etapa:"3c. Consistencia intra archivos",valida:"Coherencia de datos dentro de un mismo archivo",archivo:"consintraprefijoaaaamm.ext",consecuencia:"AFP corrige y reenvía ese archivo",critico:false},
+  {etapa:"3d. Consistencia entre archivos",valida:"Coherencia de datos entre distintos archivos del informe",archivo:"consentreprefijoaaaamm.ext",consecuencia:"AFP corrige y reenvía ese archivo",critico:false},
+];
+
+const valPorArchivo={
+  pers:[
+    ["01002","Fecha de nacimiento","Debe ser anterior a la Fecha de afiliación al Sistema si afiliado registra valor 1 o 6 en Tipo de Cuenta de CTAS","E"],
+    ["01005","Fecha de afiliación al sistema","Debe ser posterior o igual al 01/05/1981 si afiliado registra valor 1 en Tipo de Cuenta de CTAS","E"],
+    ["01007","Fecha de afiliación al sistema","Debe ser mayor que 0 si Tipo de incorporación = 01, 02 o 05","I"],
+    ["01012","Fecha de incorporación a AFP","Debe ser ≥ a la Fecha de afiliación al sistema","I"],
+    ["01019","Código de control","Debe ser APV/APP/ACV/ACP/CAV/CAP si Tipo de incorporación = 04","I"],
+    ["01020","Código de control","Debe ser VAL o PRV si Tipo de incorporación = 01 o 02","I"],
+    ["01043","Código de estado","Debe ser 02 o 04 si Indicador art.69 del archivo AFPI = S","E"],
+    ["01044","Código de estado","Debe ser 02 o 04 si Indicador art.69 del archivo AFPV = S","E"],
+    ["01047","Indicador Pensionado antiguo sistema","Debe ser S si Indicador art.17 transitorio en AFPI = S","E"],
+    ["01048","Indicador Pensionado antiguo sistema","Debe ser S si Indicador art.17 transitorio en AFPV = S","E"],
+    ["01053-01059","Situación de cuentas (7 dígitos)","Cada posición que vale 1 debe tener la cuenta correspondiente en CTAS (7 cruces independientes)","E"],
+    ["01060","Tipo de incorporación = 03","Debe tener al menos Tipo Cuenta=3 en CTAS (CAI). NO debe tener Tipo Cuenta=1","E"],
+    ["01061","Tipo de incorporación = 04","Tipo Cuenta solo puede ser 2,4,5 o 7 (sin CCICO)","E"],
+    ["01062","Tipo de incorporación = 05/06","Al menos un Tipo Cuenta=6 en CTAS (CCIAV)","E"],
   ],
-  validacionesReales: {
-    proceso: [
-      { etapa:"1. Estructura inicial", valida:"Largo de registro, tipo de registro, RUT AFP, prefijo, período, N° registros, caracteres, datos numéricos, DV, valores en cero/blanco", archivo:"eestaaaamm.ext + eestprefijoaaaamm.ext", consecuencia:"Rechaza el Informe COMPLETO" },
-      { etapa:"2a. Coherencia entre archivos", valida:"Coherencia entre campos de distintos archivos (ej: situación cuentas PERS vs CTAS)", archivo:"eecdprefijoaaaamm.ext", consecuencia:"Rechaza el Informe COMPLETO" },
-      { etapa:"2b. Datos repetidos", valida:"Registros duplicados según llave única definida por archivo", archivo:"eedrprefijoaaaamm.ext", consecuencia:"Rechaza el Informe COMPLETO" },
-      { etapa:"3a. Tipo de dato/formato", valida:"Fechas válidas (301), DV incorrecto (401)", archivo:"tdatprefijoaaaamm.ext", consecuencia:"AFP corrige y reenvía ese archivo" },
-      { etapa:"3b. Codificación", valida:"Códigos fuera de catálogo (999)", archivo:"contprefijoaaaamm.ext", consecuencia:"AFP corrige y reenvía ese archivo" },
-      { etapa:"3c. Consistencia intra archivos", valida:"Coherencia de datos dentro de un mismo archivo", archivo:"consintraprefijoaaaamm.ext", consecuencia:"AFP corrige y reenvía ese archivo" },
-      { etapa:"3d. Consistencia entre archivos", valida:"Coherencia de datos entre distintos archivos del informe", archivo:"consentreprefijoaaaamm.ext", consecuencia:"AFP corrige y reenvía ese archivo" },
-    ],
-    // Validaciones REALES extraídas del Excel validacionesBDAAFP.xlsx
-    porArchivo: {
-      pers: [
-        ["01002","Fecha de nacimiento","Debe ser anterior a la Fecha de afiliación al Sistema si el afiliado registra valor 1 o 6 en el campo Tipo de Cuenta del archivo 2.4","E"],
-        ["01005","Fecha de afiliación al sistema","Debe ser posterior o igual al 01/05/1981 si afiliado registra valor 1 en Tipo de Cuenta de CTAS","E"],
-        ["01007","Fecha de afiliación al sistema","Debe ser mayor que 0 si Tipo de incorporación al Sistema = 01, 02 o 05","I"],
-        ["01012","Fecha de incorporación a AFP","Debe ser mayor o igual a la Fecha de afiliación al sistema","I"],
-        ["01019","Código de control","Debe informarse con APV/APP/ACV/ACP/CAV/CAP si Tipo de incorporación = 04","I"],
-        ["01020","Código de control","Debe ser VAL o PRV si Tipo de incorporación = 01 o 02","I"],
-        ["01043","Código de estado","Debe ser 02 o 04 si Indicador art.69 del archivo AFPI = S","E"],
-        ["01044","Código de estado","Debe ser 02 o 04 si Indicador art.69 del archivo AFPV = S","E"],
-        ["01053-01059","Situación de cuentas (7 dígitos)","Cada posición del campo (7 dígitos) si vale 1 debe tener la cuenta correspondiente en CTAS","E"],
-        ["01060","Tipo de incorporación al Sistema","Si valor=03 → debe informar al menos Tipo Cuenta=3 en CTAS (CAI) y NO debe tener Tipo Cuenta=1","E"],
-        ["01061","Tipo de incorporación al Sistema","Si valor=04 → Tipo Cuenta debe ser solo 2,4,5 o 7 (CAV/CCICV/CCIDC/CAPVC). NO debe tener CCICO","E"],
-        ["01062","Tipo de incorporación al Sistema","Si valor=05 o 06 → al menos un Tipo Cuenta=6 en CTAS (CCIAV)","E"],
-      ],
-      ctas: [
-        ["04002","Tipo de fondo","Se debe informar un MÁXIMO de DOS Tipos de Fondos por cada Tipo de subcuenta, para un mismo RUT","I"],
-        ["04003","Saldo en cuotas","Si Saldo en cuotas a la fecha del Informe > 0 → Saldo en pesos a la fecha del Informe debe ser > 0","I"],
-      ],
-      mcci: [
-        ["10001","RUN del trabajador","Debe estar informado en el archivo 2.1 Personas","E"],
-        ["10005","Fecha de operación","Debe estar entre el 01/05/1981 y el último día del informe","I"],
-        ["10007","Fecha de movimiento (acreditación)","Debe estar entre el 01/05/1981 y el último día del informe","I"],
-        ["10009","Código del movimiento","NO debe registrar código 3 en segunda posición (declaración y no pago) para cot. obligatorias ni APVC","I"],
-        ["10010","Código del movimiento","Si Código=11073 o 12073 → RUT empleador, DV, período, remun. imponible, Tipo Pago y Tipo Planilla deben estar informados","I"],
-        ["10011","Código del movimiento","Si Código=11073 o 12073 → la Remuneración imponible NO debe ser superior al tope imponible del período","I"],
-        ["10016","Monto en pesos","NO debe registrar valor cero","I"],
-      ],
-      afpi: [
-        ["12002","RUN del afiliado","Debe ser informado en el archivo 2.1 Personas","E"],
-        ["12004","Tipo de pensión de invalidez","Debe informarse con valor 11 si campo 14 (fecha dictamen posterior a 2°) > 0","I"],
-        ["12011","Modalidad de pensión","Debe informarse en 00 si Tipo pensión invalidez = 17 o 18 (transitoria)","I"],
-        ["12013","Modalidad de pensión","Distinta de 00 y 12 si Fecha segundo dictamen ejecutoriado > 0 y SCOMP = S","I"],
-        ["12044","Pensión de referencia, en UF","Mayor que 0 si Modalidad=07 o (Cobertura=01/02 y Fecha 2° dictamen > 0)","I"],
-        ["12077","Factor de Ajuste","Debe ser mayor o igual a cero y MENOR que uno","I"],
-        ["12078","Factor de Ajuste","Debe ser igual a cero si Indicador art.17 transitorio = S","I"],
-        ["12080","Factor de Ajuste","Debe ser igual a cero si Tipo Pensión invalidez = 15, 16, 17 o 18","I"],
-        ["12081","Factor de Ajuste","Debe ser igual a cero si Modalidad de pensión es distinta de 08 y 09","I"],
-      ],
-      afpv: [
-        ["14002","RUN del afiliado","Debe informarse en el archivo 2.1 Personas","E"],
-        ["14006","Fecha solicitud pensión vejez","Debe ser posterior a la Fecha de afiliación al sistema del archivo 2.1","E"],
-        ["14007","Fecha solicitud pensión vejez","Si Tipo pensión vejez = 01 → debe ser mayor o igual a fecha cumplimiento edad legal (calculada con Fecha nacimiento)","E"],
-        ["14053","Factor de Ajuste","Debe ser mayor o igual que cero y menor que uno","I"],
-        ["14054","Factor de Ajuste","Debe ser igual a cero si Indicador art.17 transitorio = S","I"],
-        ["14092","Factor de Ajuste","Debe ser igual a cero si Fecha solicitud pensión vejez es anterior al 01/10/2008","I"],
-      ],
-      afal: [
-        ["17002","RUN del afiliado","Debe informarse en el archivo 2.1 Personas","E"],
-        ["17006","Fecha de fallecimiento","Debe ser posterior al 01/05/1981","I"],
-        ["17007","Fecha de fallecimiento","Debe ser anterior o igual al último día del período","I"],
-        ["17009","Ingreso Base en UF","Si Situación al fallecer = 07 u 08 → Ingreso base debe ser igual a cero","I"],
-        ["17013","Cobertura al fallecer","Si Situación al fallecer = 07 → Cobertura debe ser 01","I"],
-      ],
-      ppvi: [
-        ["16017","RUN del afiliado","Debe estar al menos en una AFP en AFPI (clasif. pago 03,04,05,06,07) o AFPV (clasif. pago 01,02)","EA"],
-        ["16023","Tipo pago de la pensión","Debe ser distinto de 07 si Monto excedente libre disposición > 0","I"],
-        ["16027","Beneficio Solidario autofinanciado","Mayor que 0 si Indicador financiamiento Beneficio Solidario = 02 o 03","I"],
-        ["16031","Indicador pensión APS","Debe ser S si Indicador Tipo Beneficio Solidario = 01 o 02","I"],
-      ],
-      pbps: [
-        ["19002","RUN del afiliado","Debe informarse en el archivo 2.1 Personas","E"],
-        ["19003","RUN del afiliado","Debe estar en AFAL (2.17). Al menos en una AFP donde tenía afiliación al fallecer","EA"],
-        ["19004","RUN del afiliado","Debe estar en AFPS (2.18 fallecidos que causaron pensión sobrevivencia)","EA"],
-        ["19009","Monto pensión del mes en UF","Debe ser mayor que cero","I"],
-        ["19016","Porcentaje pensión beneficiario","Debe estar entre 10 y 65 inclusive","I"],
-      ],
-      rvvi: [
-        ["21002","RUN del afiliado","Debe informarse en el archivo Personas","E"],
-        ["21003","RUN del afiliado","Debe estar al menos en una AFP en AFPI (2.12) o AFPV (2.14)","EA"],
-        ["21004","Monto pensión RV en UF","Debe ser mayor a cero","I"],
-        ["21006","Fecha traspaso prima única","Debe ser posterior al 01/05/1981 y ≤ último día hábil","I"],
-      ],
-    }
-  }
+  ctas:[
+    ["04002","Tipo de fondo","Máximo DOS Tipos de Fondos por cada Tipo de subcuenta para un mismo RUT","I"],
+    ["04003","Saldo en cuotas","Si cuotas > 0 entonces saldo en pesos debe ser > 0","I"],
+  ],
+  mcci:[
+    ["10001","RUN del trabajador","Debe estar informado en archivo 2.1 Personas","E"],
+    ["10005","Fecha de operación","Debe estar entre 01/05/1981 y último día del informe","I"],
+    ["10007","Fecha de movimiento","Debe estar entre 01/05/1981 y último día del informe","I"],
+    ["10009","Código del movimiento","NO debe registrar código 3 en 2ª posición (declaración y no pago) para cot. obligatorias ni APVC","I"],
+    ["10010","Código del movimiento","Si Código=11073 o 12073 → RUT empleador, DV, período, remun. imponible, Tipo Pago y Tipo Planilla deben estar informados","I"],
+    ["10011","Código del movimiento","Si Código=11073 o 12073 → Remuneración imponible NO debe superar el tope imponible del período","I"],
+    ["10016","Monto en pesos","NO debe registrar valor cero","I"],
+  ],
+  afpi:[
+    ["12002","RUN del afiliado","Debe ser informado en archivo 2.1 Personas","E"],
+    ["12004","Tipo de pensión de invalidez","Debe ser 11 si Fecha dictamen posterior a 2° > 0","I"],
+    ["12011","Modalidad de pensión","Debe ser 00 si Tipo pensión = 17 o 18 (transitoria)","I"],
+    ["12013","Modalidad de pensión","Distinta de 00 y 12 si Fecha 2° dictamen > 0 y SCOMP = S","I"],
+    ["12044","Pensión de referencia en UF","Mayor que 0 si Modalidad=07 o (Cobertura=01/02 y Fecha 2° dictamen > 0)","I"],
+    ["12077","Factor de Ajuste","Debe ser ≥ 0 y MENOR que 1","I"],
+    ["12078","Factor de Ajuste","Debe ser igual a cero si Indicador art.17 transitorio = S","I"],
+    ["12080","Factor de Ajuste","Debe ser cero si Tipo Pensión invalidez = 15, 16, 17 o 18","I"],
+    ["12081","Factor de Ajuste","Debe ser cero si Modalidad de pensión es distinta de 08 y 09","I"],
+  ],
+  afpv:[
+    ["14002","RUN del afiliado","Debe informarse en archivo 2.1 Personas","E"],
+    ["14006","Fecha solicitud pensión vejez","Debe ser posterior a la Fecha de afiliación al sistema del archivo 2.1","E"],
+    ["14007","Fecha solicitud pensión vejez","Si Tipo pensión vejez = 01 → debe ser ≥ fecha cumplimiento edad legal","E"],
+    ["14053","Factor de Ajuste","Debe ser ≥ 0 y MENOR que 1","I"],
+    ["14054","Factor de Ajuste","Debe ser cero si Indicador art.17 transitorio = S","I"],
+    ["14092","Factor de Ajuste","Debe ser cero si Fecha solicitud pensión < 01/10/2008","I"],
+  ],
+  afal:[
+    ["17002","RUN del afiliado","Debe informarse en archivo 2.1 Personas","E"],
+    ["17006","Fecha de fallecimiento","Debe ser posterior al 01/05/1981","I"],
+    ["17007","Fecha de fallecimiento","Debe ser anterior o igual al último día del período","I"],
+    ["17009","Ingreso Base en UF","Si Situación al fallecer = 07 u 08 → Ingreso base debe ser cero","I"],
+    ["17013","Cobertura al fallecer","Si Situación al fallecer = 07 → Cobertura debe ser 01","I"],
+  ],
+  ppvi:[
+    ["16017","RUN del afiliado","Debe estar al menos en una AFP en AFPI (clasif. 03-07) o AFPV (clasif. 01-02)","EA"],
+    ["16023","Tipo pago de la pensión","Debe ser distinto de 07 si Monto excedente libre disposición > 0","I"],
+    ["16027","Beneficio Solidario autofinanciado","Mayor que 0 si Indicador financiamiento Beneficio Solidario = 02 o 03","I"],
+    ["16031","Indicador pensión APS","Debe ser S si Indicador Tipo Beneficio Solidario = 01 o 02","I"],
+  ],
+  pbps:[
+    ["19002","RUN del afiliado","Debe informarse en archivo 2.1 Personas","E"],
+    ["19003","RUN del afiliado","Debe estar en AFAL (al menos en una AFP con afiliación vigente al fallecer)","EA"],
+    ["19004","RUN del afiliado","Debe estar en AFPS (fallecidos que causaron pensión de sobrevivencia)","EA"],
+    ["19009","Monto pensión del mes en UF","Debe ser mayor que cero","I"],
+    ["19016","Porcentaje pensión beneficiario","Debe estar entre 10 y 65 inclusive","I"],
+  ],
+  rvvi:[
+    ["21002","RUN del afiliado","Debe informarse en archivo Personas","E"],
+    ["21003","RUN del afiliado","Debe estar al menos en una AFP en AFPI (2.12) o AFPV (2.14)","EA"],
+    ["21004","Monto pensión RV en UF","Debe ser mayor a cero","I"],
+    ["21006","Fecha traspaso prima única","Debe ser posterior al 01/05/1981 y ≤ último día hábil del período","I"],
+  ],
 };
 
-const tipoColor = {
-  maestro:"#6366f1", bono:"#f59e0b", saldo:"#10b981", movimiento:"#3b82f6",
-  plan:"#8b5cf6", pension:"#ec4899", fallecido:"#6b7280", beneficiario:"#14b8a6",
-  deuda:"#ef4444", seguro:"#0ea5e9", internacional:"#a855f7", identificador:"#84cc16",
-  contacto:"#fb923c",
-};
+/* ─────────────────────────── STATE ─────────────────────────── */
+let activeTab=0, search="", filterTipo="todos", expandedCard=null, activeValArch="pers";
 
-let activeTab = 0;
-let search = "";
-let filterTipo = "todos";
-let expandedCard = null;
-let activeValArchivo = "pers";
+const app=document.getElementById("app");
+const tabsEl=document.getElementById("tabs");
 
-const app = document.getElementById("app");
-const tabsEl = document.getElementById("tabs");
-
-function esc(v){ return String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c])); }
-function badge(t,c){ return `<span class="badge" style="background:${c}22;color:${c}">${esc(t)}</span>`; }
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
+function badge(t,c){return `<span class="badge" style="background:${c}22;color:${c}">${esc(t)}</span>`;}
 
 function renderTabs(){
-  tabsEl.innerHTML = TABS.map((t,i)=>`<button class="tab ${i===activeTab?"active":""}" onclick="setTab(${i})">${esc(t)}</button>`).join("");
+  tabsEl.innerHTML=TABS.map((t,i)=>`<button class="tab ${i===activeTab?"active":""}" onclick="setTab(${i})">${esc(t)}</button>`).join("");
 }
-function setTab(i){ activeTab=i; expandedCard=null; render(); }
+function setTab(i){activeTab=i;expandedCard=null;render();}
 
 function render(){
   renderTabs();
-  if (activeTab===0) return renderOverview();
-  if (activeTab===1) return renderGrupos("saldos");
-  if (activeTab===2) return renderGrupos("deudas");
-  if (activeTab===3) return renderRelaciones();
-  if (activeTab===4) return renderDiagnostico();
-  if (activeTab===5) return renderConceptos();
+  if(activeTab===0)return renderOverview();
+  if(activeTab===1)return renderSaldos();
+  if(activeTab===2)return renderDeudas();
+  if(activeTab===3)return renderRelaciones();
+  if(activeTab===4)return renderDiagnostico();
+  if(activeTab===5)return renderConceptos();
   return renderValidaciones();
 }
 
-function renderOverview(){
-  const tipos = ["todos", ...Object.keys(tipoColor)];
-  const filtered = data.overview.archivos.filter(a=>{
-    const q = search.trim().toLowerCase();
-    const ms = !q || [a.nom,a.pre,a.desc].some(x => x.toLowerCase().includes(q));
-    const mt = filterTipo==="todos" || a.tipo===filterTipo;
-    return ms && mt;
+function getFilteredArchivos(){
+  const q=search.trim().toLowerCase();
+  return archivos.filter(a=>{
+    const ms=!q||[a.nom,a.pre,a.desc,a.key,a.tipo].some(x=>String(x).toLowerCase().includes(q));
+    const mt=filterTipo==="todos"||a.tipo===filterTipo;
+    return ms&&mt;
   });
-  app.innerHTML = `
+}
+
+function renderArchivoGrid(filtered){
+  if(!filtered.length){
+    return `<div class="card" style="grid-column:1/-1;text-align:center;color:#94a3b8">
+      No encontré archivos con ese criterio. Puedes borrar la búsqueda con la X.
+    </div>`;
+  }
+
+  return filtered.map(a=>`
+    <article class="file-card ${expandedCard===a.n?"open":""}" onclick="toggleCard(${a.n})" style="border-color:${expandedCard===a.n?tipoColor[a.tipo]:"#334155"}">
+      <div class="file-head">
+        ${badge(a.pre,tipoColor[a.tipo])}
+        <div style="flex:1">
+          <div class="file-title">${a.n}. ${esc(a.nom)}</div>
+          <div class="file-meta">${esc(a.pre.toLowerCase())}aaaamm.ext</div>
+          <div class="file-desc">${esc(a.desc)}<br><span class="chip" style="background:${tipoColor[a.tipo]}33;color:${tipoColor[a.tipo]}">${esc(a.tipo)}</span></div>
+          <div class="file-key"><b>🔑 Llave única:</b><br>${esc(a.key)}</div>
+        </div>
+      </div>
+    </article>`).join("");
+}
+
+function updateClearSearchButton(){
+  const clear=document.getElementById("clearSearch");
+  if(clear) clear.classList.toggle("show", search.trim().length>0);
+}
+
+function updateOverviewResults(){
+  const filtered=getFilteredArchivos();
+  const grid=document.getElementById("archivoGrid");
+  const count=document.getElementById("archivoCount");
+
+  if(grid) grid.innerHTML=renderArchivoGrid(filtered);
+  if(count) count.textContent=`${filtered.length} archivos`;
+
+  updateClearSearchButton();
+}
+
+/* ── 0. VISIÓN GENERAL ── */
+function renderOverview(){
+  const tipos=["todos",...Object.keys(tipoColor)];
+  const filtered=getFilteredArchivos();
+  app.innerHTML=`
     <section class="card">
       <h2>¿Qué es la BDA?</h2>
-      <p style="margin:0;color:#cbd5e1">${esc(data.overview.desc)}</p>
+      <p style="margin:0;color:#cbd5e1">Informe mensual que cada AFP envía a la Superintendencia de Pensiones. Consolida TODA la información previsional: personas, cuentas, saldos, movimientos, bonos, pensionados, fallecidos, beneficiarios, deudas y rezagos.</p>
       <div class="stats">
-        ${[
-          ["¿Quién envía?","Cada AFP"],
-          ["¿A quién?","Superintendencia de Pensiones"],
-          ["¿Cuándo?","Mensualmente (aaaamm)"],
-          ["¿Cómo?","Transmisión electrónica"],
-          ["Total archivos","44 archivos de datos"],
-          ["Versión actual","23 (vigente 2026)"],
-        ].map(d=>`<div class="stat"><div class="label">${d[0]}</div><div class="value">${d[1]}</div></div>`).join("")}
+        ${[["¿Quién envía?","Cada AFP"],["¿A quién?","Superintendencia de Pensiones"],["¿Cuándo?","Mensualmente (aaaamm)"],["¿Cómo?","Transmisión electrónica"],["Total archivos","44 archivos de datos"],["Versión","23 (vigente 2026)"]].map(d=>`<div class="stat"><div class="lbl">${d[0]}</div><div class="val">${d[1]}</div></div>`).join("")}
       </div>
-      <p class="small-note">💡 Haz clic en cualquier archivo para ver su descripción y <b style="color:#fbbf24">llave única (key structure)</b> — la combinación de campos que identifica un registro y se usa para detectar duplicados.</p>
     </section>
+
+    <section class="card">
+      <h3>🎨 Significado de los colores</h3>
+      <p style="margin:0 0 10px;font-size:13px;color:var(--muted)">Cada archivo tiene un color según su categoría. Haz clic en cualquier tarjeta para ver descripción y <b style="color:#fbbf24">🔑 llave única</b>.</p>
+      <div class="legend">
+        ${Object.entries(tipoColor).map(([tipo,color])=>`<div class="leg-item"><div class="leg-dot" style="background:${color}"></div><span style="color:${color};font-weight:700">${tipo}</span><span style="color:var(--dim);font-size:11px"> — ${tipoLabel[tipo]}</span></div>`).join("")}
+      </div>
+    </section>
+
     <section class="filters">
-      <input id="search" value="${esc(search)}" placeholder="🔍 Buscar archivo, prefijo o descripción..." />
+      <div class="search-wrap">
+        <input id="search" value="${esc(search)}" placeholder="🔍 Buscar archivo, prefijo, llave o descripción..." autocomplete="off"/>
+        <button id="clearSearch" class="clear-search ${search.trim()?"show":""}" type="button" onclick="clearArchivoSearch()" title="Borrar búsqueda" aria-label="Borrar búsqueda">×</button>
+      </div>
       <select id="tipo">
         ${tipos.map(t=>`<option value="${t}" ${t===filterTipo?"selected":""}>${t==="todos"?"Todos los tipos":t}</option>`).join("")}
       </select>
-      <span style="font-size:12px;color:#64748b">${filtered.length} archivos</span>
+      <span id="archivoCount" style="font-size:12px;color:#64748b">${filtered.length} archivos</span>
     </section>
-    <section class="grid">
-      ${filtered.map(a=>`
-        <article class="file-card ${expandedCard===a.n?"open":""}" onclick="toggleCard(${a.n})" style="border-color:${expandedCard===a.n?tipoColor[a.tipo]:"#334155"}">
-          <div class="file-head">
-            ${badge(a.pre, tipoColor[a.tipo])}
-            <div style="flex:1">
-              <div class="file-title">${a.n}. ${esc(a.nom)}</div>
-              <div class="file-meta">archivo 2.${a.n} · ${esc(a.pre.toLowerCase())}aaaamm.ext</div>
-              <div class="file-desc">
-                ${esc(a.desc)}
-                <br><span class="chip" style="background:${tipoColor[a.tipo]}33;color:${tipoColor[a.tipo]}">${esc(a.tipo)}</span>
-              </div>
-              <div class="file-key"><b>🔑 Llave única:</b><br>${esc(a.key)}</div>
-            </div>
-          </div>
-        </article>
-      `).join("")}
-    </section>
-  `;
-  document.getElementById("search").addEventListener("input", e=>{ search=e.target.value; renderOverview(); });
-  document.getElementById("tipo").addEventListener("change", e=>{ filterTipo=e.target.value; renderOverview(); });
+
+    <section class="grid" id="archivoGrid">
+      ${renderArchivoGrid(filtered)}
+    </section>`;
+
+  const searchEl=document.getElementById("search");
+  const tipoEl=document.getElementById("tipo");
+
+  if(searchEl){
+    searchEl.addEventListener("input",e=>{
+      search=e.target.value;
+      expandedCard=null;
+      updateOverviewResults();
+    });
+  }
+
+  if(tipoEl){
+    tipoEl.addEventListener("change",e=>{
+      filterTipo=e.target.value;
+      expandedCard=null;
+      updateOverviewResults();
+    });
+  }
 }
 
-function toggleCard(n){ expandedCard = expandedCard===n ? null : n; renderOverview(); }
+function clearArchivoSearch(){
+  search="";
+  expandedCard=null;
 
-function renderGrupos(kind){
-  const isDebt = kind==="deudas";
-  const intro = isDebt
-    ? `💡 <b style="color:#ef4444">Flujo de deudas:</b> DPRE (presunta) → si reconoce o no aclara → DCPC (carátula) + DCRI (detalle) → si no paga → cobranza judicial EMCT/CPET. Si paga tarde → CREZ (rezago).`
-    : `💡 <b style="color:#10b981">Regla fundamental:</b> Saldo cuotas CTAS mes actual = Saldo cuotas CTAS mes anterior ± movimientos MCCI del mes, por RUN + tipo cuenta + tipo fondo. Si no cuadra, el error está en MCCI o en saldo inicial.`;
-  app.innerHTML = `
-    <section class="notice">${intro}</section>
-    ${data[kind].grupos.map(g=>`
+  const input=document.getElementById("search");
+  if(input){
+    input.value="";
+    input.focus();
+  }
+
+  updateOverviewResults();
+}
+
+function toggleCard(n){
+  expandedCard=expandedCard===n?null:n;
+  updateOverviewResults();
+}
+
+/* ── 1. SALDOS ── */
+function renderSaldos(){
+  app.innerHTML=`
+    <section class="notice">💡 <b style="color:#10b981">Regla fundamental:</b> Saldo cuotas CTAS mes actual = Saldo cuotas CTAS mes anterior ± movimientos MCCI, por RUN + tipo cuenta + tipo fondo. El saldo en PESOS puede cambiar solo (por valor cuota) — el saldo en CUOTAS no.</section>
+    ${saldos.map(g=>`
       <section class="card">
         <h3>${esc(g.titulo)}</h3>
-        ${g.desc?`<p style="margin:0 0 10px;color:#64748b;font-size:13px">${esc(g.desc)}</p>`:""}
-        <div class="key-box">
-          <div class="key-label">🔑 Llave única (para detectar duplicados)</div>
-          <div class="key-value">${esc(g.key)}</div>
-        </div>
+        <div class="key-box"><div class="key-label">🔑 Llave única</div><div class="key-value">${esc(g.key)}</div></div>
         <div class="rule">⚡ <b>Regla clave:</b> ${esc(g.regla)}</div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Campo</th><th>Formato</th><th>Notas y validaciones</th></tr></thead>
-            <tbody>
-              ${g.campos.map(c=>`<tr><td><b>${esc(c.campo)}</b></td><td class="mono">${esc(c.formato)}</td><td style="color:#94a3b8">${esc(c.nota)}</td></tr>`).join("")}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    `).join("")}
-  `;
+        <div class="tw"><table>
+          <thead><tr><th>Campo</th><th>Formato</th><th>Notas y validaciones</th></tr></thead>
+          <tbody>${g.campos.map(c=>`<tr><td><b>${esc(c.c)}</b></td><td class="mono">${esc(c.f)}</td><td style="color:#94a3b8">${esc(c.n)}</td></tr>`).join("")}</tbody>
+        </table></div>
+      </section>`).join("")}`;
 }
 
+/* ── 2. DEUDAS ── */
+function renderDeudas(){
+  app.innerHTML=`
+    <section class="notice">💡 <b style="color:#ef4444">Flujo de deudas:</b> DPRE (presunta) → si reconoce o no aclara → DCPC (carátula) + DCRI (detalle) → si no paga → EMCT/CPET (tribunales). Si paga tarde → CREZ (rezago).</section>
+    ${deudas.map(g=>`
+      <section class="card">
+        <h3>${esc(g.titulo)}</h3>
+        ${g.desc?`<p style="margin:0 0 8px;color:#64748b;font-size:13px">${esc(g.desc)}</p>`:""}
+        <div class="key-box"><div class="key-label">🔑 Llave única</div><div class="key-value">${esc(g.key)}</div></div>
+        <div class="rule">⚡ <b>Regla clave:</b> ${esc(g.regla)}</div>
+        <div class="tw"><table>
+          <thead><tr><th>Campo</th><th>Formato</th><th>Notas</th></tr></thead>
+          <tbody>${g.campos.map(c=>`<tr><td><b>${esc(c.c)}</b></td><td class="mono">${esc(c.f)}</td><td style="color:#94a3b8">${esc(c.n)}</td></tr>`).join("")}</tbody>
+        </table></div>
+      </section>`).join("")}`;
+}
+
+/* ── 3. RELACIONES ── */
 function renderRelaciones(){
-  const fases = [
-    { fase:"1. Afiliación", archivos:["PERS"], color:"#6366f1", desc:"Punto de entrada. Valida existencia y estado." },
-    { fase:"2. Cotizaciones activas", archivos:["CTAS","MCCI","SCAI","SCCV","SPVC"], color:"#10b981", desc:"Saldos y movimientos por cuenta/fondo." },
-    { fase:"3. Deudas y rezagos", archivos:["DPRE","DCPC","DCRI","CREZ"], color:"#ef4444", desc:"Empleadores que no pagaron o cotizaciones atrasadas." },
-    { fase:"4. Pensión", archivos:["AFPI","AFPV","PPVI","RVVI","ANVI"], color:"#ec4899", desc:"Dictámenes, modalidad, pagos y anualidades." },
-    { fase:"5. Fallecimiento", archivos:["AFAL","AFPS","BEPS","PBPS","RVPS"], color:"#6b7280", desc:"Causante, beneficiarios y pagos de sobrevivencia." },
-    { fase:"6. Bonos y extras", archivos:["BONO","DABR","CDTF","SETR"], color:"#f59e0b", desc:"Bonos, cambios de fondo y solicitudes." },
+  const fases=[
+    {fase:"1. Afiliación",archivos:["PERS"],color:"#6366f1",desc:"Punto de entrada. Valida existencia y estado."},
+    {fase:"2. Cotizaciones activas",archivos:["CTAS","MCCI","SCAI","SCCV","SPVC"],color:"#10b981",desc:"Saldos y movimientos por cuenta/fondo."},
+    {fase:"3. Deudas y rezagos",archivos:["DPRE","DCPC","DCRI","CREZ"],color:"#ef4444",desc:"Empleadores que no pagaron o cotizaciones atrasadas."},
+    {fase:"4. Pensión",archivos:["AFPI","AFPV","PPVI","RVVI","ANVI"],color:"#ec4899",desc:"Dictámenes, modalidad, pagos y anualidades."},
+    {fase:"5. Fallecimiento",archivos:["AFAL","AFPS","BEPS","PBPS","RVPS"],color:"#6b7280",desc:"Causante, beneficiarios y pagos sobrevivencia."},
+    {fase:"6. Bonos y extras",archivos:["BONO","DABR","CDTF","SETR"],color:"#f59e0b",desc:"Bonos, cambios de fondo y solicitudes."},
   ];
-  app.innerHTML = `
-    <section class="notice">💡 Cuando algo se reporta mal, <b style="color:#a5b4fc">PERS es siempre el primer lugar a revisar</b>. Casi todos los errores de consistencia entre archivos se detectan cruzando contra PERS.</section>
-    ${data.relaciones.principales.map(r=>`
+  app.innerHTML=`
+    <section class="notice">💡 Cuando algo falla, <b style="color:#a5b4fc">PERS es siempre el primer archivo a revisar</b>. Casi todos los errores de consistencia se detectan cruzando contra PERS.</section>
+    ${relaciones.map(r=>`
       <section class="relation ${r.critico?"critical":""}">
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-          ${badge(r.desde,"#60a5fa")} <span class="arrow">→</span> ${badge(r.hacia,"#a5b4fc")}
+        <div style="display:flex;align-items:center;gap:11px;flex-wrap:wrap">
+          ${badge(r.desde,"#60a5fa")} <span style="color:#64748b;font-size:18px">→</span> ${badge(r.hacia,"#a5b4fc")}
           ${r.critico?`<span class="badge" style="background:#ef444422;color:#f87171">CRÍTICO</span>`:""}
         </div>
-        <div style="margin-top:9px;color:#94a3b8;font-size:13px;line-height:1.5">${esc(r.regla)}</div>
-      </section>
-    `).join("")}
-    <section class="card" style="margin-top:22px">
-      <h3>🗺️ Flujo de datos del ciclo de vida de un afiliado</h3>
+        <div style="margin-top:8px;color:#94a3b8;font-size:13px;line-height:1.5">${esc(r.regla)}</div>
+      </section>`).join("")}
+    <section class="card" style="margin-top:20px">
+      <h3>🗺️ Ciclo de vida de un afiliado</h3>
       <div class="flow">
         ${fases.map(f=>`<div class="phase" style="border-color:${f.color}44">
-          <div style="color:${f.color};font-weight:800;margin-bottom:7px">${esc(f.fase)}</div>
-          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">${f.archivos.map(a=>badge(a,f.color)).join("")}</div>
-          <div style="font-size:12px;color:#94a3b8">${esc(f.desc)}</div>
+          <div style="color:${f.color};font-weight:800;margin-bottom:6px">${esc(f.fase)}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px">${f.archivos.map(a=>badge(a,f.color)).join("")}</div>
+          <div style="font-size:11.5px;color:#94a3b8">${esc(f.desc)}</div>
         </div>`).join("")}
       </div>
-    </section>
-  `;
+    </section>`;
 }
 
+/* ── 4. DIAGNÓSTICO ── */
 function renderDiagnostico(){
-  const rapido = [
-    ["Un RUN no existe o tiene DV inválido","PERS","Validar módulo 11. Buscar el RUN en PERS primero. Códigos: EE09, 401"],
-    ["Saldo no cuadra al cierre del mes","CTAS ↔ MCCI","Sumar movs MCCI del mes (mismo RUN+cuenta+fondo) y comparar: CTAS ant. + MCCI = CTAS actual"],
-    ["Pensionado reportado pero sin dictamen","AFPI o AFPV","Verificar campos dictamen, fecha y modalidad. Cruzar estado en PERS (campo 21)"],
-    ["Pago a pensionado sin respaldo","PPVI ↔ AFPI/AFPV","Regla 16017: RUN en PPVI debe estar al menos en una AFP en AFPI o AFPV con modalidad compatible"],
-    ["Beneficiario sin causante","BEPS ↔ AFPS/AFAL","Reglas 19003/19004: RUN del causante en BEPS debe estar en AFAL y AFPS"],
-    ["Deuda sin detalle de involucrados","DCPC ↔ DCRI","Toda deuda en DCPC debe tener registros en DCRI con el mismo N° de serie"],
-    ["Prima de renta vitalicia no cuadra","RVVI ↔ MCCI/DABR","Buscar en MCCI el cargo de traspaso. Si el bono fue cedido, verificar DABR"],
-    ["Cotización declarada pero no abonada","CREZ o DPRE","Si está en rezago → CREZ. Si NO declaró ni pagó → DPRE"],
-    ["Situación de cuentas inconsistente","PERS.31 ↔ CTAS","Reglas 01053-01059 + EE50/EE51. Recalcular campo desde CTAS efectivo"],
-    ["PAFE inconsistente con saldos","AFPI/AFPV ↔ CTAS/CNAN","Verificar que CNU usado sea el vigente y que saldos correspondan al período"],
-    ["Factor de ajuste con valor incorrecto","AFPI, AFPV, ANVI","Regla 12077: debe ser ≥ 0 y < 1. Cero si APS/PGU vigente o modalidad inválida"],
-  ];
-  app.innerHTML = `
-    <section class="notice">💡 <b style="color:#fbbf24">Proceso de validación SP:</b> 1) Estructura inicial → 2) Coherencia y datos repetidos → 3) Validación de datos intra e interarchivo. Etapas 1 y 2 rechazan el informe completo.</section>
+  app.innerHTML=`
+    <section class="notice">💡 <b style="color:#fbbf24">Proceso de validación SP:</b> 1) Estructura inicial → 2) Coherencia y repetidos → 3) Validación de datos. Etapas 1 y 2 rechazan el <b>informe completo</b>.</section>
     <h3>❌ Errores más comunes y cómo prevenirlos</h3>
-    ${data.errores.tipicos.map(e=>`
-      <article class="error-card">
-        <div class="error-row">
+    ${erroresTipicos.map(e=>`
+      <article class="ec">
+        <div class="er">
           <div>
             <div style="font-weight:800;color:#f87171;margin-bottom:4px">${esc(e.error)}</div>
-            <div style="font-size:12px;color:#94a3b8">Ejemplo: ${esc(e.ejemplo)}</div>
+            <div style="font-size:12px;color:#94a3b8">Ejemplo: ${esc(e.ej)}</div>
           </div>
           <div>
-            <div style="font-size:12px;color:#4ade80;margin-bottom:6px">✅ ${esc(e.prevencion)}</div>
-            ${badge("Código: "+e.codigo,"#fbbf24")} ${badge(e.archivo,"#60a5fa")}
+            <div style="font-size:12px;color:#4ade80;margin-bottom:6px">✅ ${esc(e.prev)}</div>
+            ${badge("Código: "+e.cod,"#fbbf24")} ${badge(e.arch,"#60a5fa")}
           </div>
         </div>
-      </article>
-    `).join("")}
-    <h3 style="margin-top:24px">📟 Códigos de error completos</h3>
-    <section class="codes">
-      ${data.errores.codigos.map(c=>`<div class="code-box"><b>${esc(c.cod)}</b><div style="font-size:12px;color:#94a3b8;margin-top:5px">${esc(c.desc)}</div></div>`).join("")}
-    </section>
-    <section class="card" style="margin-top:22px">
+      </article>`).join("")}
+    <h3 style="margin-top:22px">📟 Códigos de error completos</h3>
+    <div class="codes">
+      ${codigosError.map(c=>`<div class="cb"><b>${esc(c.cod)}</b><div style="font-size:12px;color:#94a3b8;margin-top:4px">${esc(c.desc)}</div></div>`).join("")}
+    </div>
+    <section class="card" style="margin-top:20px">
       <h3>🔎 Guía de diagnóstico rápido</h3>
-      <p style="font-size:12.5px;color:#94a3b8;margin:0 0 14px">Si encuentras un error en producción, esta tabla te dice qué tablas revisar y qué cruzar para encontrar la causa raíz.</p>
-      ${rapido.map(d=>`<div class="phase" style="margin-bottom:9px">
-        <div style="font-size:13px;color:#f87171;font-weight:800;margin-bottom:5px">🔴 ${esc(d[0])}</div>
-        <div style="font-size:12px"><span style="color:#64748b">Tabla(s): </span><b style="color:#60a5fa;font-family:ui-monospace, SFMono-Regular, Menlo, monospace">${esc(d[1])}</b></div>
-        <div style="font-size:12px;color:#94a3b8;margin-top:4px">→ ${esc(d[2])}</div>
+      <p style="font-size:12.5px;color:#94a3b8;margin:0 0 13px">Encuentra la causa raíz usando esta tabla.</p>
+      ${diagnosticoRapido.map(d=>`<div class="phase" style="margin-bottom:8px">
+        <div style="font-size:13px;color:#f87171;font-weight:800;margin-bottom:4px">🔴 ${esc(d[0])}</div>
+        <div style="font-size:12px"><span style="color:#64748b">Tabla(s): </span><b style="color:#60a5fa;font-family:ui-monospace,SFMono-Regular,Menlo,monospace">${esc(d[1])}</b></div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:3px">→ ${esc(d[2])}</div>
       </div>`).join("")}
-    </section>
+    </section>`;
+}
+
+/* ── 5. CONCEPTOS MEJORADO ── */
+function ensureConceptStyles(){
+  if(document.getElementById("concept-extra-styles")) return;
+
+  const style=document.createElement("style");
+  style.id="concept-extra-styles";
+  style.textContent=`
+    .concept-nav{
+      position:sticky;
+      top:116px;
+      z-index:6;
+      display:flex;
+      flex-wrap:wrap;
+      gap:7px;
+      background:rgba(15,23,42,.94);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:10px;
+      margin-bottom:18px;
+      box-shadow:0 14px 32px rgba(0,0,0,.25);
+      backdrop-filter:blur(10px);
+    }
+
+    .concept-nav-title{
+      width:100%;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      color:#cbd5e1;
+      font-size:12px;
+      font-weight:800;
+      margin-bottom:2px;
+    }
+
+    .concept-nav-hint{
+      color:var(--dim);
+      font-size:11px;
+      font-weight:600;
+    }
+
+    .cnav-btn{
+      position:relative;
+      overflow:hidden;
+    }
+
+    .cnav-btn.active{
+      background:#1e293b !important;
+      box-shadow:0 0 0 2px rgba(96,165,250,.22);
+      transform:translateY(-1px);
+    }
+
+    .concept-card{
+      transition:border-color .22s ease, box-shadow .22s ease, transform .22s ease;
+      scroll-margin-top:260px;
+    }
+
+    .concept-card.concept-highlight{
+      border-color:#fbbf24 !important;
+      box-shadow:0 0 0 3px rgba(251,191,36,.18),0 18px 42px rgba(0,0,0,.30);
+      transform:translateY(-2px);
+    }
+
+    .concept-actions{
+      display:flex;
+      justify-content:flex-end;
+      margin-top:12px;
+    }
+
+    .concept-top-btn{
+      border:1px solid var(--line);
+      background:#0f172a;
+      color:#93c5fd;
+      padding:7px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+      cursor:pointer;
+      transition:.15s;
+    }
+
+    .concept-top-btn:hover{
+      border-color:#60a5fa;
+      color:#dbeafe;
+      transform:translateY(-1px);
+    }
+
+    @media(max-width:680px){
+      .concept-nav{
+        position:static;
+      }
+
+      .concept-nav-title{
+        display:block;
+      }
+
+      .concept-nav-hint{
+        display:block;
+        margin-top:4px;
+      }
+
+      .concept-card{
+        scroll-margin-top:20px;
+      }
+    }
   `;
+  document.head.appendChild(style);
+}
+
+function goConcepto(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+
+  document.querySelectorAll(".cnav-btn").forEach(btn=>btn.classList.remove("active"));
+  const btn=document.querySelector(`[data-target="${id}"]`);
+  if(btn) btn.classList.add("active");
+
+  const header=document.querySelector("header");
+  const nav=document.getElementById("concept-nav");
+  const headerHeight=header && window.getComputedStyle(header).position==="sticky" ? header.offsetHeight : 0;
+  const navHeight=nav && window.innerWidth>680 ? nav.offsetHeight : 0;
+  const extraSpace=24;
+  const offset=headerHeight+navHeight+extraSpace;
+  const y=el.getBoundingClientRect().top+window.scrollY-offset;
+
+  window.scrollTo({
+    top:Math.max(y,0),
+    behavior:"smooth"
+  });
+
+  el.classList.add("concept-highlight");
+
+  if(history.replaceState){
+    history.replaceState(null,"",`#${id}`);
+  }
+
+  setTimeout(()=>el.classList.remove("concept-highlight"),1400);
+}
+
+function goTopConceptos(){
+  const nav=document.getElementById("concept-nav");
+  if(!nav) return;
+
+  const header=document.querySelector("header");
+  const headerHeight=header && window.getComputedStyle(header).position==="sticky" ? header.offsetHeight : 0;
+  const y=nav.getBoundingClientRect().top+window.scrollY-headerHeight-14;
+
+  window.scrollTo({
+    top:Math.max(y,0),
+    behavior:"smooth"
+  });
 }
 
 function renderConceptos(){
-  app.innerHTML = `
-    <section class="notice">🎓 Conceptos que no son obvios pero aparecen constantemente en validaciones, errores y cruces. Conocerlos marca la diferencia al momento de diagnosticar un problema.</section>
-    ${data.conceptos.map(c=>`
-      <section class="concept-card" style="border-left:4px solid ${c.color}">
-        <div class="concept-head">
-          <span style="background:${c.color}22;color:${c.color};padding:5px 12px;border-radius:8px;font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase">CONCEPTO CLAVE</span>
-          <div class="concept-title">${esc(c.titulo)}</div>
+  ensureConceptStyles();
+
+  app.innerHTML=`
+    <section class="notice">
+      🎓 Conceptos que no son obvios pero aparecen constantemente en validaciones y errores.
+      Usa el menú como índice: al pinchar un concepto, baja directo a su explicación y la tarjeta queda resaltada.
+    </section>
+
+    <div class="concept-nav" id="concept-nav">
+      <div class="concept-nav-title">
+        <span>📌 Índice de conceptos</span>
+        <span class="concept-nav-hint">Pincha un concepto para ir directo</span>
+      </div>
+
+      ${conceptos.map(c=>`
+        <button
+          class="cnav-btn"
+          data-target="c-${c.id}"
+          onclick="goConcepto('c-${c.id}')"
+          style="border-color:${c.color}55;color:${c.color}"
+          title="Ir a ${esc(c.titulo)}"
+        >
+          ${c.emoji} ${esc(c.titulo.split("–")[0].trim())}
+        </button>
+      `).join("")}
+    </div>
+
+    ${conceptos.map(c=>`
+      <section class="concept-card" id="c-${c.id}" style="border-left:4px solid ${c.color}">
+        <div class="chead">
+          <span style="background:${c.color}22;color:${c.color};padding:4px 10px;border-radius:7px;font-size:10px;font-weight:900;letter-spacing:.05em;text-transform:uppercase">
+            Concepto clave
+          </span>
+          <div class="ctitle">${c.emoji} ${esc(c.titulo)}</div>
         </div>
-        <p class="concept-desc">${esc(c.desc)}</p>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px">
-          ${c.detalles.map(d=>`<div class="concept-detail"><b>${esc(d[0])}:</b> <span style="color:#cbd5e1">${esc(d[1])}</span></div>`).join("")}
+
+        <p class="cdesc">${esc(c.desc)}</p>
+
+        <div class="cdetails">
+          ${c.detalles.map(d=>`
+            <div class="cd">
+              <b>${esc(d[0])}:</b>
+              <span style="color:#cbd5e1">${esc(d[1])}</span>
+            </div>
+          `).join("")}
+        </div>
+
+        <div class="concept-actions">
         </div>
       </section>
     `).join("")}
   `;
+
+  const target=location.hash?.replace("#","");
+  if(target && target.startsWith("c-")){
+    setTimeout(()=>goConcepto(target),120);
+  }
 }
 
+/* ── 6. VALIDACIONES ── */
 function renderValidaciones(){
-  const archivos = Object.keys(data.validacionesReales.porArchivo);
-  app.innerHTML = `
-    <section class="notice">✅ Validaciones REALES extraídas de la planilla oficial <b>validacionesBDAAFP.xlsx</b>. Los códigos siguen el formato <b>NNXXX</b> donde NN es el número del archivo (ej. 01=PERS, 04=CTAS, 10=MCCI, 12=AFPI, 14=AFPV, 17=AFAL).</section>
+  const archsKeys=Object.keys(valPorArchivo);
+  app.innerHTML=`
+    <section class="notice">✅ Validaciones reales extraídas de la planilla oficial <b>validacionesBDAAFP.xlsx</b>. <b style="color:#fbbf24">I</b> = intra archivo · <b style="color:#60a5fa">E</b> = entre archivos · <b style="color:#a855f7">EA</b> = entre AFPs.</section>
 
     <section class="card">
-      <h3>📋 Proceso de validación de la SP (3 etapas)</h3>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Etapa</th><th>Qué valida</th><th>Archivo de error</th><th>Consecuencia</th></tr></thead>
-          <tbody>
-            ${data.validacionesReales.proceso.map(e=>`<tr>
-              <td><b>${esc(e.etapa)}</b></td>
-              <td style="color:#94a3b8">${esc(e.valida)}</td>
-              <td class="mono" style="font-size:11px">${esc(e.archivo)}</td>
-              <td style="color:${e.consecuencia.includes("COMPLETO")?"#f87171":"#4ade80"};font-size:12px;font-weight:700">${esc(e.consecuencia)}</td>
-            </tr>`).join("")}
-          </tbody>
-        </table>
-      </div>
+      <h3>📋 Las 3 etapas de validación de la SP</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Etapa</th><th>Qué valida</th><th>Archivo de error generado</th><th>Consecuencia</th></tr></thead>
+        <tbody>
+          ${valProceso.map(e=>`<tr>
+            <td><b>${esc(e.etapa)}</b></td>
+            <td style="color:#94a3b8;font-size:12px">${esc(e.valida)}</td>
+            <td class="mono" style="font-size:11px">${esc(e.archivo)}</td>
+            <td style="color:${e.critico?"#f87171":"#4ade80"};font-size:12px;font-weight:700">${esc(e.consecuencia)}</td>
+          </tr>`).join("")}
+        </tbody>
+      </table></div>
     </section>
 
     <section class="card">
       <h3>🔍 Validaciones por archivo</h3>
-      <p style="font-size:12.5px;color:#94a3b8;margin:0 0 12px">Selecciona un archivo para ver sus validaciones más críticas. <b style="color:#fbbf24">I</b> = intra archivo, <b style="color:#60a5fa">E</b> = entre archivos, <b style="color:#a855f7">EA</b> = entre AFPs.</p>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
-        ${archivos.map(a=>`<button class="tab ${activeValArchivo===a?"active":""}" onclick="setValArchivo('${a}')" style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace;text-transform:uppercase">${a}</button>`).join("")}
+      <p style="font-size:12.5px;color:#94a3b8;margin:0 0 11px">Selecciona un archivo para ver sus validaciones críticas.</p>
+      <div class="vtabs">
+        ${archsKeys.map(a=>`<button class="vtab ${activeValArch===a?"active":""}" onclick="setValArch('${a}')">${a.toUpperCase()}</button>`).join("")}
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th style="width:90px">Código</th><th style="width:170px">Campo</th><th>Descripción</th><th style="width:60px">Tipo</th></tr></thead>
-          <tbody>
-            ${data.validacionesReales.porArchivo[activeValArchivo].map(v=>{
-              const tipoColors = {I:"#fbbf24", E:"#60a5fa", EA:"#a855f7"};
-              return `<tr>
-                <td class="code">${esc(v[0])}</td>
-                <td><b>${esc(v[1])}</b></td>
-                <td style="color:#cbd5e1">${esc(v[2])}</td>
-                <td><span class="badge" style="background:${tipoColors[v[3]]}22;color:${tipoColors[v[3]]}">${esc(v[3])}</span></td>
-              </tr>`;
-            }).join("")}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  `;
+      <div class="tw"><table>
+        <thead><tr><th style="width:85px">Código</th><th style="width:165px">Campo</th><th>Descripción de la validación</th><th style="width:55px">Tipo</th></tr></thead>
+        <tbody>
+          ${valPorArchivo[activeValArch].map(v=>{
+            const tc={I:"#fbbf24",E:"#60a5fa",EA:"#a855f7"};
+            return `<tr>
+              <td class="cod">${esc(v[0])}</td>
+              <td><b>${esc(v[1])}</b></td>
+              <td style="color:#cbd5e1">${esc(v[2])}</td>
+              <td><span class="badge" style="background:${tc[v[3]]}22;color:${tc[v[3]]}">${esc(v[3])}</span></td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table></div>
+    </section>`;
+}
+function setValArch(a){activeValArch=a;renderValidaciones();}
+
+
+function goPageTop(){
+  window.scrollTo({top:0,behavior:"smooth"});
 }
 
-function setValArchivo(a){ activeValArchivo=a; renderValidaciones(); }
+function updateBackTopButton(){
+  const btn=document.getElementById("backTopBtn");
+  if(!btn) return;
+  btn.classList.toggle("show", window.scrollY>280);
+}
+
+window.addEventListener("scroll", updateBackTopButton, {passive:true});
+window.addEventListener("load", updateBackTopButton);
 
 render();
-  </script>
+</script>
 </body>
 </html>
