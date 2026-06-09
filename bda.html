@@ -333,6 +333,38 @@ const conceptos=[
     ["En BDA","APV aparece en SCCV (saldos por régimen tributario), SPVC (saldos APVC por empleador). Movimientos en MCCI con códigos específicos."],
     ["Bonificación estatal APVC","En SBEP: saldo de la bonificación estatal del 15% en régimen A del APVC. Se informa separado del aporte del trabajador y del empleador."],
    ]},
+,
+  {id:"rp",emoji:"🧮",titulo:"RP – Cómo se calcula el Retiro Programado",color:"#10b981",
+   desc:"En RP el saldo queda en la AFP y la pensión se recalcula cada año. La fórmula conecta tres piezas que ya conoces: saldo, CNU y factor de ajuste. Entender este cálculo explica los archivos ANVI y CNAN completos.",
+   detalles:[
+    ["La fórmula base","Anualidad = Saldo de la cuenta ÷ CNU. Esa anualidad se divide en 12 para obtener la pensión mensual. El CNU usado queda registrado en CNAN y el cálculo completo en ANVI (monto fórmula, monto a retirar)."],
+    ["Recálculo anual","Cada año (aniversario de la pensión) se recalcula con el saldo actual y el CNU vigente. Por eso la pensión RP puede SUBIR o BAJAR — el saldo cambió por rentabilidad y retiros, y el CNU cambió por edad y tablas."],
+    ["Factor de ajuste","Tras calcular la anualidad se aplica el factor (≥0 y <1) para suavizar la caída futura de la pensión. No aplica si: art.17 transitorio=S, art.69=S, pensión transitoria, o modalidad fuera de 08/09."],
+    ["Causales de recálculo (ANVI)","No solo el aniversario: también hay recálculo por cambio de modalidad, herencia recibida, ELD retirado, traspaso de bono, etc. El campo Causal de recálculo en ANVI identifica cuál fue."],
+    ["Al fallecer","El saldo remanente NO se pierde: financia las pensiones de sobrevivencia (ANGF/ANPS calculan las anualidades del grupo familiar) o pasa a herencia si no hay beneficiarios."],
+    ["Errores típicos","Factor de ajuste inconsistente entre AFPI/AFPV y ANVI · CNU desactualizado en CNAN · Monto a retirar que no cuadra con la pensión pagada en PPVI."],
+   ]},
+  {id:"sobrevivencia",emoji:"👪",titulo:"Sobrevivencia – El flujo completo al fallecer",color:"#f472b6",
+   desc:"Cuando un afiliado fallece se activa una cadena de archivos que cuenta una historia: quién murió, si causó pensión, quiénes son los beneficiarios y cuánto recibe cada uno. Entender el orden del flujo es la clave para diagnosticar errores de consistencia.",
+   detalles:[
+    ["1. AFAL – el causante","Todo fallecido se informa en AFAL con su situación al fallecer (01-15), saldos y cobertura SIS. PERS debe tener estado 03 o 04."],
+    ["2. AFPS – si causó sobrevivencia","Solo pasan a AFPS los fallecidos cuyo grupo familiar tiene derecho a pensión. Aquí van la pensión de referencia y el aporte adicional del SIS (si el saldo no alcanzaba, el seguro complementa)."],
+    ["3. BEPS/PBES – los beneficiarios","BEPS registra los beneficiarios acreditados (cónyuge, hijos, padres) con parentesco e invalidez. PBES registra los POTENCIALES aún no acreditados. La llave incluye RUN causante + RUN beneficiario."],
+    ["4. PBPS – los pagos","Cada pago mensual a cada beneficiario. El porcentaje de pensión debe estar entre 10 y 65 (regla 19016): cónyuge 60%, hijos 15%, etc. según el art. 58 DL 3.500."],
+    ["5. Modalidad del grupo","Si el grupo elige RV → RVPS (por beneficiario) o RVGF (grupo familiar). Si queda en RP → ANGF/ANPS calculan las anualidades. CMGF registra cambios de modalidad."],
+    ["Validaciones EA clave","19003: el causante debe estar en AFAL de al menos una AFP · 19004: debe estar en AFPS · Si falla, el pago en PBPS no tiene respaldo."],
+    ["RP nocional","Para sobrevivencia post-2020: si el causante retiró ELD en vida, la pensión se calcula también con el saldo nocional (como si no hubiera retirado). Si nocional > real, el IPS complementa."],
+   ]},
+  {id:"art69",emoji:"➕",titulo:"Artículo 69 – El pensionado que sigue cotizando",color:"#60a5fa",
+   desc:"El art. 69 del DL 3.500 permite que un pensionado que sigue trabajando y cotizando obtenga una PENSIÓN ADICIONAL con su nuevo saldo. Es la razón por la que un mismo RUN puede aparecer dos veces en AFPI/AFPV sin ser error.",
+   detalles:[
+    ["Qué dice el indicador","S = pensionado en Renta Vitalicia que obtiene una pensión adicional. N = caso normal. Está en AFPI campo 5 y AFPV campo 5."],
+    ["Por qué está en la llave única","La llave de AFPI/AFPV es RUN + DV + Indicador art.69 + Fecha certificado de saldo. Sin el indicador, el registro de la pensión original y el de la adicional serían 'duplicados'. Con él, ambos conviven."],
+    ["En los pagos (PPVI)","La Condición de la pensión pagada tiene el código 02 = 'Adicional de un pensionado en RV acogido a artículo 69'. Así se distingue el pago original del adicional."],
+    ["Sin factor de ajuste","Si art.69 = S, NO corresponde informar Factor de Ajuste — la pensión adicional en RV no lo usa (nota 24 de AFPI)."],
+    ["Cruce con PERS","Validaciones 01043/01044: si art.69 = S en AFPI o AFPV, el Código de estado en PERS debe ser 02 o 04 (activo o fallecido PENSIONADO)."],
+    ["Detalle importante","Solo aplica a pensionados en RV. Si el pensionado está en RP y sigue cotizando, el nuevo saldo se suma a su cuenta y se recalcula la pensión original — no genera pensión adicional."],
+   ]},
 ];
 const valProceso=[
   {etapa:"1. Estructura inicial",valida:"Largo de registro, tipo, RUT AFP, prefijo, período, N° registros, caracteres, numéricos, DV, ceros/blancos",archivo:"eestaaaamm.ext + eestprefijoaaaamm.ext",consecuencia:"Rechaza el Informe COMPLETO",critico:true},
@@ -349,13 +381,13 @@ const valPorArchivo={
   mcci:[["10001","RUN del trabajador","Debe estar informado en archivo 2.1 Personas","E"],["10005","Fecha de operación","Debe estar entre 01/05/1981 y último día del informe","I"],["10007","Fecha de movimiento","Debe estar entre 01/05/1981 y último día del informe","I"],["10009","Código del movimiento","NO debe registrar código 3 en 2ª posición para cot. obligatorias ni APVC","I"],["10010","Código del movimiento","Si Código=11073 o 12073 → RUT empleador, DV, período, remun. imponible, Tipo Pago y Tipo Planilla deben estar informados","I"],["10011","Código del movimiento","Si Código=11073 o 12073 → Remuneración imponible NO debe superar el tope imponible del período","I"],["10016","Monto en pesos","NO debe registrar valor cero","I"]],
   afpi:[["12002","RUN del afiliado","Debe ser informado en archivo 2.1 Personas","E"],["12004","Tipo de pensión de invalidez","Debe ser 11 si Fecha dictamen posterior a 2° > 0","I"],["12011","Modalidad de pensión","Debe ser 00 si Tipo pensión = 17 o 18 (transitoria)","I"],["12013","Modalidad de pensión","Distinta de 00 y 12 si Fecha 2° dictamen > 0 y SCOMP = S","I"],["12044","Pensión de referencia en UF","Mayor que 0 si Modalidad=07 o (Cobertura=01/02 y Fecha 2° dictamen > 0)","I"],["12077","Factor de Ajuste","Debe ser ≥ 0 y MENOR que 1","I"],["12078","Factor de Ajuste","Debe ser igual a cero si Indicador art.17 transitorio = S","I"],["12080","Factor de Ajuste","Debe ser cero si Tipo Pensión invalidez = 15, 16, 17 o 18","I"],["12081","Factor de Ajuste","Debe ser cero si Modalidad de pensión es distinta de 08 y 09","I"]],
   afpv:[["14002","RUN del afiliado","Debe informarse en archivo 2.1 Personas","E"],["14006","Fecha solicitud pensión vejez","Debe ser posterior a la Fecha de afiliación al sistema del archivo 2.1","E"],["14007","Fecha solicitud pensión vejez","Si Tipo pensión vejez = 01 → debe ser ≥ fecha cumplimiento edad legal","E"],
-    ["14023","Región donde solicita la pensión","Si el campo 6 (Código país de pago de PPVI) es distinto al código Chile, se debe informar el valor 00 en Región de pago de pensión. v23 referenciaba campo 5 — corregido a campo 6.","E","mod"],["14053","Factor de Ajuste","Debe ser ≥ 0 y MENOR que 1","I"],["14054","Factor de Ajuste","Debe ser cero si Indicador art.17 transitorio = S","I"],["14092","Factor de Ajuste","Debe ser cero si Fecha solicitud pensión < 01/10/2008","I"]],
+    ["14023","Región donde solicita la pensión","Si el campo 6 (Código país de pago de PPVI) es distinto al código Chile, se debe informar el valor 00 en Región de pago de pensión. La planilla anterior referenciaba el campo 5; la actual el campo 6.","E","mod"],["14053","Factor de Ajuste","Debe ser ≥ 0 y MENOR que 1","I"],["14054","Factor de Ajuste","Debe ser cero si Indicador art.17 transitorio = S","I"],["14092","Factor de Ajuste","Debe ser cero si Fecha solicitud pensión < 01/10/2008","I"]],
   afal:[["17002","RUN del afiliado","Debe informarse en archivo 2.1 Personas","E"],["17006","Fecha de fallecimiento","Debe ser posterior al 01/05/1981","I"],["17007","Fecha de fallecimiento","Debe ser anterior o igual al último día del período","I"],["17009","Ingreso Base en UF","Si Situación al fallecer = 07 u 08 → Ingreso base debe ser cero","I"],
-    ["17010","Ingreso Base en UF","Debe ser mayor que 0 si: Situación al fallecer = 09, 10 u 11 AND Cobertura al fallecer = 01 ó 02 AND Monto aporte adicional > 0. (v23 tenía lógica diferente — código renumerado y reescrito)","I","mod"],["17013","Cobertura al fallecer","Si Situación al fallecer = 07 → Cobertura debe ser 01","I"]],
+    ["17010","Ingreso Base en UF","Debe ser mayor que 0 si: Situación al fallecer = 09, 10 u 11 AND Cobertura al fallecer = 01 ó 02 AND Monto aporte adicional > 0. (En la planilla anterior este código tenía otra redacción)","I","mod"],["17013","Cobertura al fallecer","Si Situación al fallecer = 07 → Cobertura debe ser 01","I"]],
   ppvi:[["16017","RUN del afiliado","Debe estar al menos en una AFP en AFPI (clasif. 03-07) o AFPV (clasif. 01-02)","EA"],["16023","Tipo pago de la pensión","Debe ser distinto de 07 si Monto excedente libre disposición > 0","I"],["16027","Beneficio Solidario autofinanciado","Mayor que 0 si Indicador financiamiento Beneficio Solidario = 02 o 03","I"],["16031","Indicador pensión APS","Debe ser S si Indicador Tipo Beneficio Solidario = 01 o 02","I"],
     ["16036","RP nocional, en UF","El campo RP nocional, en UF debe ser mayor a 0, si el campo 30 (Indicador tipo Beneficio Solidario) es igual a 2, 3 ó 4 y el campo 31 (RP real, en UF) es distinto de cero.","I","mod"]],
   pbps:[["19002","RUN del afiliado","Debe informarse en archivo 2.1 Personas","E"],["19003","RUN del afiliado","Debe estar en AFAL (al menos en una AFP con afiliación vigente al fallecer)","EA"],["19004","RUN del afiliado","Debe estar en AFPS (fallecidos que causaron pensión de sobrevivencia)","EA"],["19009","Monto pensión del mes en UF","Debe ser mayor que cero","I"],["19016","Porcentaje pensión beneficiario","Debe estar entre 10 y 65 inclusive","I"]],
-  rvvi:[["21002","RUN del afiliado","Debe informarse en archivo Personas","E"],["21003","RUN del afiliado","Debe estar al menos en una AFP en AFPI (2.12) o AFPV (2.14)","EA"],["21004","Monto pensión RV en UF","Debe ser mayor a cero","I"],["21006","Fecha traspaso prima única","Debe ser posterior al 01/05/1981 y ≤ último día hábil del período","I"],["21018","Fecha de traspaso de la prima única","Debe ser posterior a Fecha de selección de modalidad de pensión en AFPI o AFPV (al menos una AFP) · NUEVO v24","EA","new"]],
+  rvvi:[["21002","RUN del afiliado","Debe informarse en archivo Personas","E"],["21003","RUN del afiliado","Debe estar al menos en una AFP en AFPI (2.12) o AFPV (2.14)","EA"],["21004","Monto pensión RV en UF","Debe ser mayor a cero","I"],["21006","Fecha traspaso prima única","Debe ser posterior al 01/05/1981 y ≤ último día hábil del período","I"],["21018","Fecha de traspaso de la prima única","Debe ser posterior a Fecha de selección de modalidad de pensión en AFPI o AFPV (al menos una AFP)","EA","new"]],
   dcpc:[["30003","N° afiliados informados en la deuda","Debe ser distinto de cero","I","new"],["30004","RUT estudio jurídico prejudicial","Debe ser > 0 cuando Estado = 003 (asignada a estudio prejudicial)","I","new"],["30005","Fecha asignación estudio prejudicial","Debe ser > 0 cuando Estado = 003","I","new"],["30006","Fecha reasignación estudio prejudicial","Debe ser > 0 cuando Estado = 002 (reasignada)","I","new"],["30007","RUT estudio jurídico judicial","Debe ser > 0 cuando Estado = 005 a 011","I","new"],["30008","Fecha asignación estudio judicial","Debe ser > 0 cuando Estado = 005 a 011","I","new"],["30009","Fecha reasignación estudio judicial","Debe ser posterior a la fecha de asignación judicial si ésta > 0","I","new"],["30010","Fecha de resolución de cobranza judicial","Debe ser ≠ 0 cuando Estado = 005 a 011","I","new"],["30012","Fecha ingreso demanda al Tribunal","Debe ser ≠ 0 cuando Estado = 006 a 011","I","new"],["30013","Código del Tribunal","Debe ser código válido (Anexo III) ≠ 00000 cuando Estado = 006-011 ó 999","I","new"],["30014","Código del juicio de la causa","Debe ser ≠ blanco cuando Estado = 006 a 011","I","new"],["30015","Fecha notificación juicio al empleador","Debe ser posterior a Fecha ingreso demanda al tribunal si ésta > 0","I","new"],["30020","Monto total remuneración imponible","Debe ser mayor que cero","I","new"],["30021","Monto total de la cotización","Debe ser mayor que cero","I","new"],["30023","Saldo adeudado","Debe ser mayor que cero","I","new"],["30025","Monto intereses","Debe ser mayor que cero","I","new"],["30029","Fecha rendición estudio jurídico","Debe ser posterior o igual a la Fecha de consignación","I","new"],["30030","Tipo Informe a la DT","Debe ser BOL, PAC, EIP o DIE si Fecha envío DT (campo 21) > 0","I","new"],["30031","Tipo Informe a la DT","Debe ser NCI si Fecha envío DT (campo 21) = 0","I","new"]],
   dpre:[["32003","Período de devengamiento","Debe ser posterior a octubre 2008 e igual o anterior al mes del informe","I","new"],["32005","Fecha determinación deuda presunta","Debe ser posterior o igual al 01/11/2008","I","new"],["32006","Fecha determinación deuda presunta","Debe ser anterior o igual al último día del mes del informe","I","new"],["32008","Fecha 1ª consulta seguro cesantía","Debe ser posterior o igual al 01/11/2008","I","new"],["32009","Fecha 1ª consulta seguro cesantía","Debe ser anterior o igual al último día del mes del informe","I","new"],["32010","Fecha comunicación al empleador","Debe ser > 0 cuando Estado = 01 o 03 y posterior al 01/11/2008","I","new"],["32012","Fecha comunicación al empleador","Debe ser anterior o igual al último día del mes del informe","I","new"],["32014","Fecha de estado de la deuda presunta","Debe ser posterior o igual al 01/05/1981","I","new"],["32015","Fecha de estado de la deuda presunta","Debe ser anterior o igual al último día del mes del informe","I","new"],["32017","Fecha procesamiento aclaración empleador","Debe ser posterior o igual al 01/05/1981","I","new"],["32018","Fecha procesamiento aclaración empleador","Debe ser anterior o igual al último día del mes del informe","I","new"]],
   csis:[["34002","RUN del afiliado","Debe estar en AFPI (pensionados invalidez) o en AFAL (fallecidos que causaron sobrevivencia)","E","new"],["34006","RUT Cía de Seguros — contrato 1","RUT debe ser uno de los cinco RUTs del contrato 1 según sexo del afiliado (Anexo Contratos)","E","new"],["34007","RUT Cía de Seguros — contrato 2","RUT debe ser uno de los nueve RUTs del contrato 2 según sexo del afiliado","E","new"],["34008","RUT Cía de Seguros — contrato 3","RUT debe ser uno de los cinco RUTs del contrato 3 según sexo del afiliado","E","new"],["34010","Porcentaje de cobertura","Debe ser 100% si fecha invalidez/fallecimiento < 01/07/2009 y cobertura = 01 o 02","E","new"],["34012","Porcentaje de cobertura — contrato 1","Debe ser uno de los ocho porcentajes del contrato 1 según sexo","E","new"],["34013","Porcentaje de cobertura — contrato 2","Debe ser uno de los porcentajes del contrato 2 según sexo","E","new"],["34014","Porcentaje de cobertura — contrato 3","Debe ser uno de los porcentajes del contrato 3 según sexo","E","new"],["34015","Número de Contrato","Debe ser un número de contrato vigente según Anexo de Contratos","E","new"],["34017","Fecha inicio vigencia del contrato","Debe ser una fecha válida","E","new"],
@@ -472,7 +504,7 @@ const conceptoArchivo={
     ]},
 };
 
-let activeTab=0,search="",filterTipo="todos",expandedCard=null,expandedConcept=null,activeValArch="pers";
+let activeTab=0,search="",filterTipo="todos",expandedCard=null,expandedConcept=null,activeValArch="pers",valSearch="";
 const app=document.getElementById("app"),tabsEl=document.getElementById("tabs");
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
 function badge(t,c){return `<span class="badge" style="background:${c}22;color:${c}">${esc(t)}</span>`;}
@@ -490,7 +522,24 @@ function renderArchivoGrid(filtered){if(!filtered.length)return `<div class="car
 </div></div></article>`).join("");}
 function toggleConcept(n){expandedConcept=expandedConcept===n?null:n;updateUI();}
 function updateUI(){const f=getFiltered();const g=document.getElementById("aGrid");const c=document.getElementById("aCnt");const x=document.getElementById("clearSearch");if(g)g.innerHTML=renderArchivoGrid(f);if(c)c.textContent=`${f.length} archivos`;if(x)x.classList.toggle("show",search.trim().length>0);}
-function renderOverview(){const tipos=["todos",...Object.keys(tipoColor)];app.innerHTML=`<section class="card"><h2>¿Qué es la BDA?</h2><p style="margin:0;color:#cbd5e1">Informe mensual que cada AFP envía a la SP. Consolida TODA la información previsional: personas, cuentas, saldos, movimientos, bonos, pensionados, fallecidos, beneficiarios, deudas y rezagos.</p><div class="stats">${[["¿Quién envía?","Cada AFP"],["¿A quién?","Superintendencia de Pensiones"],["¿Cuándo?","Mensualmente (aaaamm)"],["¿Cómo?","Transmisión electrónica"],["Total archivos","44 archivos de datos"],["Versión actual","24 (vigente 2026)"]].map(d=>`<div class="stat"><div class="lbl">${d[0]}</div><div class="val">${d[1]}</div></div>`).join("")}</div></section><section class="card"><h3>&#x1F3A8; Significado de los colores</h3><p style="margin:0 0 10px;font-size:13px;color:var(--muted)">Cada archivo tiene un color según su categoría. Haz clic en cualquier tarjeta para ver descripción, llave única y concepto clave si aplica.</p><div class="legend">${Object.entries(tipoColor).map(([t,c])=>`<div class="leg-item"><div class="leg-dot" style="background:${c}"></div><span style="color:${c};font-weight:700">${t}</span><span style="color:var(--dim);font-size:11px"> — ${tipoLabel[t]}</span></div>`).join("")}</div></section><section class="filters"><div class="search-wrap"><input id="search" value="${esc(search)}" placeholder="Buscar archivo, prefijo, llave o descripción..." autocomplete="off"/><button id="clearSearch" class="clear-search ${search.trim()?"show":""}" type="button" onclick="clearSearch_()" title="Borrar búsqueda" aria-label="Borrar">&#x00D7;</button></div><select id="tipo">${tipos.map(t=>`<option value="${t}" ${t===filterTipo?"selected":""}>${t==="todos"?"Todos los tipos":t}</option>`).join("")}</select><span id="aCnt" style="font-size:12px;color:#64748b">${getFiltered().length} archivos</span></section><section class="grid" id="aGrid">${renderArchivoGrid(getFiltered())}</section>`;
+function renderOverview(){const tipos=["todos",...Object.keys(tipoColor)];app.innerHTML=`<section class="card"><h2>¿Qué es la BDA?</h2><p style="margin:0;color:#cbd5e1">Informe mensual que cada AFP envía a la SP. Consolida TODA la información previsional: personas, cuentas, saldos, movimientos, bonos, pensionados, fallecidos, beneficiarios, deudas y rezagos.</p><div class="stats">${[["¿Quién envía?","Cada AFP"],["¿A quién?","Superintendencia de Pensiones"],["¿Cuándo?","Mensualmente (aaaamm)"],["¿Cómo?","Transmisión electrónica"],["Total archivos","44 archivos de datos"],["Versión actual","24 (vigente 2026)"]].map(d=>`<div class="stat"><div class="lbl">${d[0]}</div><div class="val">${d[1]}</div></div>`).join("")}</div></section><section class="card"><h3>&#x1F3A8; Significado de los colores</h3><p style="margin:0 0 10px;font-size:13px;color:var(--muted)">Cada archivo tiene un color según su categoría. Haz clic en cualquier tarjeta para ver descripción, llave única y concepto clave si aplica.</p><div class="legend">${Object.entries(tipoColor).map(([t,c])=>`<div class="leg-item"><div class="leg-dot" style="background:${c}"></div><span style="color:${c};font-weight:700">${t}</span><span style="color:var(--dim);font-size:11px"> — ${tipoLabel[t]}</span></div>`).join("")}</div></section><section class="card" style="border-color:#3b82f633;background:linear-gradient(135deg,rgba(30,41,59,.95),rgba(15,23,42,.95))">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="background:#3b82f622;color:#60a5fa;padding:3px 10px;border-radius:7px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.05em">Novedades</span>
+        <h3 style="margin:0;color:#f8fafc">Cambios v24 — Revisión 15/05/2026</h3>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div style="background:#0f172a;border-radius:9px;padding:9px 12px;font-size:12.5px">
+          <b style="color:#60a5fa">CPET (archivo 2.42) — único cambio estructural</b>
+          <p style="margin:5px 0 0;color:#94a3b8;line-height:1.5">Se agregaron 3 campos nuevos al final del registro: campo 18 RUN del empleador, campo 19 DV y campo 20 Código del tribunal. El largo total pasó de X(132) a X(146). La llave única también se amplió con estos tres campos, lo que permite cruzar directamente con EMCT sin depender solo del ROL/RIT.</p>
+        </div>
+        <div style="background:#0f172a;border-radius:9px;padding:9px 12px;font-size:12.5px">
+          <b style="color:#94a3b8">Lo que NO cambió</b>
+          <p style="margin:5px 0 0;color:#64748b;line-height:1.5">Los otros 43 archivos mantienen su estructura. Las diferencias en el Excel de validaciones reflejan que la planilla anterior era un borrador con datos de relleno para los archivos de deudas y seguros — no cambios de regla entre versiones.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="filters"><div class="search-wrap"><input id="search" value="${esc(search)}" placeholder="Buscar archivo, prefijo, llave o descripción..." autocomplete="off"/><button id="clearSearch" class="clear-search ${search.trim()?"show":""}" type="button" onclick="clearSearch_()" title="Borrar búsqueda" aria-label="Borrar">&#x00D7;</button></div><select id="tipo">${tipos.map(t=>`<option value="${t}" ${t===filterTipo?"selected":""}>${t==="todos"?"Todos los tipos":t}</option>`).join("")}</select><span id="aCnt" style="font-size:12px;color:#64748b">${getFiltered().length} archivos</span></section><section class="grid" id="aGrid">${renderArchivoGrid(getFiltered())}</section>`;
   document.getElementById("search").addEventListener("input",e=>{search=e.target.value;expandedCard=null;updateUI();});
   document.getElementById("tipo").addEventListener("change",e=>{filterTipo=e.target.value;expandedCard=null;updateUI();});}
 function clearSearch_(){search="";expandedCard=null;const i=document.getElementById("search");if(i){i.value="";i.focus();}updateUI();}
@@ -506,8 +555,75 @@ function goConcepto(id){var el=document.getElementById(id);if(!el)return;documen
 function renderValidaciones(){
   var archsKeys=Object.keys(valPorArchivo);
   var newFiles=["dcpc","dpre","csis","dcri"];
-  app.innerHTML=`<section class="notice">&#x2705; Validaciones extraídas de <b>validacionesBDAAFP.xlsx</b> (v24). <b style="color:#fbbf24">I</b>=intra · <b style="color:#60a5fa">E</b>=entre archivos · <b style="color:#a855f7">EA</b>=entre AFPs · <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;vertical-align:middle;margin:0 1px"></span>=nuevo en v24 · <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#fb923c;vertical-align:middle;margin:0 1px"></span>=modificado en v24.</section><section class="card"><h3>Las 3 etapas de validación de la SP</h3><div class="tw"><table><thead><tr><th>Etapa</th><th>Qué valida</th><th>Archivo de error generado</th><th>Consecuencia</th></tr></thead><tbody>${valProceso.map(e=>`<tr><td><b>${esc(e.etapa)}</b></td><td style="color:#94a3b8;font-size:12px">${esc(e.valida)}</td><td class="mono" style="font-size:11px">${esc(e.archivo)}</td><td style="color:${e.critico?"#f87171":"#4ade80"};font-size:12px;font-weight:700">${esc(e.consecuencia)}</td></tr>`).join("")}</tbody></table></div></section><section class="card"><h3>&#x1F50D; Validaciones por archivo</h3><p style="font-size:12.5px;color:#94a3b8;margin:0 0 11px">Selecciona un archivo. Las pestañas y códigos con <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;vertical-align:middle;margin:0 2px"></span> son nuevos en v24.</p><div class="vtabs">${archsKeys.map(a=>{var isNew=newFiles.includes(a);return`<button class="vtab ${activeValArch===a?"active":""}" onclick="setValArch('${a}')" style="${isNew?"border-color:#4ade6044":""}">${a.toUpperCase()}${isNew?` <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;vertical-align:middle;margin-left:4px"></span>`:""}</button>`;}).join("")}</div><div class="tw"><table><thead><tr><th style="width:85px">Código</th><th style="width:165px">Campo</th><th>Descripción</th><th style="width:55px">Tipo</th></tr></thead><tbody>${valPorArchivo[activeValArch].map(v=>{var tc={I:"#fbbf24",E:"#60a5fa",EA:"#a855f7"};var isNew=v[4]==="new";var isMod=v[4]==="mod";return`<tr style="${isNew?"background:rgba(74,222,96,.05)":isMod?"background:rgba(251,146,60,.04)":""}"><td class="cod">${esc(v[0])}${isNew?' <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#4ade80;vertical-align:middle;margin-left:3px"></span>':""}${isMod?' <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#fb923c;vertical-align:middle;margin-left:3px"></span>':""}</td><td><b>${esc(v[1])}</b></td><td style="color:#cbd5e1">${esc(v[2])}</td><td><span class="badge" style="background:${tc[v[3]]}22;color:${tc[v[3]]}">${esc(v[3])}</span></td></tr>`;}).join("")}</tbody></table></div></section>`;}
+  var q=valSearch.trim().toLowerCase();
+  var allRows=[];
+  if(q){
+    archsKeys.forEach(function(a){
+      (valPorArchivo[a]||[]).forEach(function(v){
+        if([v[0],v[1],v[2]].some(function(x){return String(x).toLowerCase().includes(q);})){
+          allRows.push({arch:a,v:v});
+        }
+      });
+    });
+  }
+  function rowHtml(v,archLabel){
+    var tc={I:"#fbbf24",E:"#60a5fa",EA:"#a855f7"};
+    var isNew=v[4]==="new";var isMod=v[4]==="mod";
+    var dot=isNew?'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#4ade80;vertical-align:middle;margin-left:3px"></span>'
+               :isMod?'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#fb923c;vertical-align:middle;margin-left:3px"></span>':"";
+    var archCell=archLabel?`<td><span class="badge" style="background:#33415522;color:#94a3b8;font-size:10px">${archLabel}</span></td>`:"";
+    return`<tr style="${isNew?"background:rgba(74,222,96,.05)":isMod?"background:rgba(251,146,60,.04)":""}">${archCell}<td class="cod">${esc(v[0])}${dot}</td><td><b>${esc(v[1])}</b></td><td style="color:#cbd5e1">${linkifyDesc(esc(v[2]))}</td><td><span class="badge" style="background:${tc[v[3]]}22;color:${tc[v[3]]}">${esc(v[3])}</span></td></tr>`;
+  }
+  app.innerHTML=`<section class="notice">&#x2705; Validaciones extraídas de <b>validacionesBDAAFP.xlsx</b> (v24). <b style="color:#fbbf24">I</b>=intra · <b style="color:#60a5fa">E</b>=entre archivos · <b style="color:#a855f7">EA</b>=entre AFPs · <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;vertical-align:middle;margin:0 1px"></span>=no estaba en la planilla anterior · <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#fb923c;vertical-align:middle;margin:0 1px"></span>=redacción distinta a la planilla anterior.</section>
+  <section class="card"><h3>Las 3 etapas de validación de la SP</h3><div class="tw"><table><thead><tr><th>Etapa</th><th>Qué valida</th><th>Archivo de error generado</th><th>Consecuencia</th></tr></thead><tbody>${valProceso.map(function(e){return`<tr><td><b>${esc(e.etapa)}</b></td><td style="color:#94a3b8;font-size:12px">${esc(e.valida)}</td><td class="mono" style="font-size:11px">${esc(e.archivo)}</td><td style="color:${e.critico?"#f87171":"#4ade80"};font-size:12px;font-weight:700">${esc(e.consecuencia)}</td></tr>`;}).join("")}</tbody></table></div></section>
+  <section class="card">
+    <h3>&#x1F50D; Validaciones por archivo</h3>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:13px">
+      <div class="search-wrap" style="flex:1 1 220px;min-width:180px">
+        <input id="valSI" value="${esc(valSearch)}" placeholder="Buscar código, campo o descripción..." autocomplete="off" style="width:100%;padding-right:38px"/>
+        <button id="clearVS" class="clear-search ${q?"show":""}" type="button" onclick="clearValSearch_()" title="Borrar" aria-label="Borrar">&#x00D7;</button>
+      </div>
+      ${q?`<span style="font-size:11.5px;color:#64748b">${allRows.length} resultado${allRows.length!==1?"s":""}</span>`:""}
+    </div>
+    ${q
+      ?`<div class="tw"><table><thead><tr><th style="width:65px">Arch.</th><th style="width:80px">Código</th><th style="width:150px">Campo</th><th>Descripción</th><th style="width:50px">Tipo</th></tr></thead><tbody>${allRows.map(function(r){return rowHtml(r.v,r.arch.toUpperCase());}).join("")}</tbody></table></div>`
+      :`<div class="vtabs">${archsKeys.map(function(a){var isNew=newFiles.includes(a);return`<button class="vtab ${activeValArch===a?"active":""}" onclick="setValArch('${a}')" style="${isNew?"border-color:#4ade6044":""}">${a.toUpperCase()}${isNew?' <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#4ade80;vertical-align:middle"></span>':""}</button>`;}).join("")}</div>
+      <div class="tw"><table><thead><tr><th style="width:85px">Código</th><th style="width:165px">Campo</th><th>Descripción</th><th style="width:55px">Tipo</th></tr></thead><tbody>${valPorArchivo[activeValArch].map(function(v){return rowHtml(v,"");}).join("")}</tbody></table></div>`}
+  </section>`;
+  var inp=document.getElementById("valSI");
+  if(inp)inp.addEventListener("input",function(e){valSearch=e.target.value;renderValidaciones();});
+  var clr=document.getElementById("clearVS");
+  if(clr)clr.classList.toggle("show",q.length>0);}
+function clearValSearch_(){valSearch="";renderValidaciones();}
 function setValArch(a){activeValArch=a;renderValidaciones();}
+
+
+function linkifyDesc(text){
+  var prefixes=["PERS","CTAS","MCCI","AFPI","AFPV","AFAL","AFPS","BEPS","PBPS","PPVI","RVVI","RVPS","RVGF","DCPC","DCRI","DPRE","CREZ","CSIS","ANVI","CPET","EMCT"];
+  prefixes.forEach(function(p){
+    var re=new RegExp("\\b(archivo\\s+2\\.\\d+\\s+)?"+p+"\\b","g");
+    text=text.replace(re,function(m){
+      return '<span onclick="goArchivo(\''+p+'\');event.stopPropagation()" style="color:#60a5fa;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px">'+m+'</span>';
+    });
+  });
+  return text;}
+function goArchivo(pre){
+  setTab(0);
+  setTimeout(function(){
+    // find the card by prefix and open it
+    var cards=document.querySelectorAll(".file-card");
+    cards.forEach(function(c){
+      var badge=c.querySelector(".badge");
+      if(badge&&badge.textContent.trim()===pre){
+        expandedCard=null;expandedConcept=null;
+        // scroll to card
+        c.scrollIntoView({behavior:"smooth",block:"center"});
+        c.style.transition="box-shadow .3s ease";
+        c.style.boxShadow="0 0 0 3px #60a5fa88";
+        setTimeout(function(){c.style.boxShadow="";},1800);
+      }
+    });
+  },180);}
 function goPageTop(){window.scrollTo({top:0,behavior:"smooth"});}
 function updateBackTop(){var b=document.getElementById("backTopBtn");if(b)b.classList.toggle("show",window.scrollY>280);}
 window.addEventListener("scroll",updateBackTop,{passive:true});
